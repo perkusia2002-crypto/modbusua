@@ -212,6 +212,7 @@ protected:
 protected:
     CnString getServiceName() const;
     CnString getLogDir() const;
+    void startEngineeringUi();
 
 protected:
     CnCfgProject *loadConfig();
@@ -282,6 +283,7 @@ protected:
         CnString file  ;
         CnString logdir;
         CnString serviceName;
+        bool ui = false;
     } m_options;
     CnString m_defaultFileConf;
     CnString m_defaultLogDirPath;
