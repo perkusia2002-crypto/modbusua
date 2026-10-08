@@ -4,9 +4,13 @@ import hashlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
+import sys
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = Path(os.getenv("MODBUSUA_UI_ENV_FILE", BASE_DIR / ".env"))
 DEFAULT_CONFIG_FILE = BASE_DIR / "conf" / "modbusua.conf"
 DEFAULT_CONFIG = """[Project]
