@@ -224,6 +224,48 @@ TEST_F(CnCfgDeviceItemParserTest, ParseModbusItem_ArrayInvalidRange)
     EXPECT_TRUE(parser->hasError());
 }
 
+
+TEST_F(CnCfgDeviceItemParserTest, ParseSuffix_ByteSwapped)
+{
+    const char *refs[] = {
+        "400001 SB", "400001 RB", "400001 IB", "400001 UB",
+        "400001 LLB", "400001 ULB", "400001 FB", "400001 LFB"
+    };
+    const Cn::DataSuffix suffixes[] = {
+        Cn::Suffix_ByteSwappedInt16, Cn::Suffix_ByteSwappedUInt16,
+        Cn::Suffix_ByteSwappedInt32, Cn::Suffix_ByteSwappedUInt32,
+        Cn::Suffix_ByteSwappedInt64, Cn::Suffix_ByteSwappedUInt64,
+        Cn::Suffix_ByteSwappedFloat, Cn::Suffix_ByteSwappedDouble
+    };
+    for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i)
+    {
+        CnCfgDeviceItem *item = parser->parse(CnString(refs[i]));
+        ASSERT_NE(item, nullptr) << refs[i];
+        EXPECT_EQ(item->dataSuffix(), suffixes[i]) << refs[i];
+        delete item;
+    }
+}
+
+TEST_F(CnCfgDeviceItemParserTest, ParseSuffix_SwappedByte)
+{
+    const char *refs[] = {
+        "400001 ISB", "400001 USB", "400001 LLSB",
+        "400001 ULSB", "400001 FSB", "400001 LFSB"
+    };
+    const Cn::DataSuffix suffixes[] = {
+        Cn::Suffix_SwappedByteInt32, Cn::Suffix_SwappedByteUInt32,
+        Cn::Suffix_SwappedByteInt64, Cn::Suffix_SwappedByteUInt64,
+        Cn::Suffix_SwappedByteFloat, Cn::Suffix_SwappedByteDouble
+    };
+    for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i)
+    {
+        CnCfgDeviceItem *item = parser->parse(CnString(refs[i]));
+        ASSERT_NE(item, nullptr) << refs[i];
+        EXPECT_EQ(item->dataSuffix(), suffixes[i]) << refs[i];
+        delete item;
+    }
+}
+
 // ========== Error Handling Tests ==========
 
 TEST_F(CnCfgDeviceItemParserTest, ParseError_EmptyString)
