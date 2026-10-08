@@ -171,7 +171,21 @@ bool CnCfgDeviceItemParser::tryParseDataTypeSuffix()
         else if (suffix == CnSTR("LLS")) m_parsed.suffix = Cn::Suffix_SwappedInt64;
         else if (suffix == CnSTR("ULS")) m_parsed.suffix = Cn::Suffix_SwappedUInt64;
         else if (suffix == CnSTR("FS") ) m_parsed.suffix = Cn::Suffix_SwappedFloat;
-        else if (suffix == CnSTR("LFS")) m_parsed.suffix = Cn::Suffix_SwappedDouble;
+        else if (suffix == CnSTR("LFS"))  m_parsed.suffix = Cn::Suffix_SwappedDouble;
+        else if (suffix == CnSTR("SB"))   m_parsed.suffix = Cn::Suffix_ByteSwappedInt16;
+        else if (suffix == CnSTR("RB"))   m_parsed.suffix = Cn::Suffix_ByteSwappedUInt16;
+        else if (suffix == CnSTR("IB"))   m_parsed.suffix = Cn::Suffix_ByteSwappedInt32;
+        else if (suffix == CnSTR("UB"))   m_parsed.suffix = Cn::Suffix_ByteSwappedUInt32;
+        else if (suffix == CnSTR("LLB"))  m_parsed.suffix = Cn::Suffix_ByteSwappedInt64;
+        else if (suffix == CnSTR("ULB"))  m_parsed.suffix = Cn::Suffix_ByteSwappedUInt64;
+        else if (suffix == CnSTR("FB"))   m_parsed.suffix = Cn::Suffix_ByteSwappedFloat;
+        else if (suffix == CnSTR("LFB"))  m_parsed.suffix = Cn::Suffix_ByteSwappedDouble;
+        else if (suffix == CnSTR("ISB"))  m_parsed.suffix = Cn::Suffix_SwappedByteInt32;
+        else if (suffix == CnSTR("USB"))  m_parsed.suffix = Cn::Suffix_SwappedByteUInt32;
+        else if (suffix == CnSTR("LLSB")) m_parsed.suffix = Cn::Suffix_SwappedByteInt64;
+        else if (suffix == CnSTR("ULSB")) m_parsed.suffix = Cn::Suffix_SwappedByteUInt64;
+        else if (suffix == CnSTR("FSB"))  m_parsed.suffix = Cn::Suffix_SwappedByteFloat;
+        else if (suffix == CnSTR("LFSB")) m_parsed.suffix = Cn::Suffix_SwappedByteDouble;
         else
         {
             CnStd::snprintf(m_lastError, CN_CDIP_ERROR_SZ, CnSTR("Unknown suffix: %s"), suffix.data());
