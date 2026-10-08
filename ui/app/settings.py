@@ -8,6 +8,29 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = Path(os.getenv("MODBUSUA_UI_ENV_FILE", BASE_DIR / ".env"))
+DEFAULT_CONFIG_FILE = BASE_DIR / "conf" / "modbusua.conf"
+DEFAULT_CONFIG = """[Project]
+Name=modbusua
+Log.flags="Error|Warning|Info|TraceDetails"
+Log.output="file console"
+Log.default.format="[%time] %src. %text"
+Log.default.timeformat="%Y-%M-%D %h:%m:%s.%f"
+Log.file.format="%time;%cat;%src;%text"
+Log.file.timeformat="%h:%m:%s.%f"
+Log.file.path="log.csv"
+Log.file.maxcount=10
+Log.file.maxsize=1000000
+
+[OPCUA]
+Port=4840
+UncertainAs=Good#Bad#Good#Uncertain
+"""
+
+def ensure_default_config(path: Path) -> None:
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(DEFAULT_CONFIG, encoding="utf-8", newline="\n")
 
 
 def _load_dotenv(path: Path) -> dict[str, str]:
@@ -55,19 +78,20 @@ class Settings:
 
     @classmethod
     def load(cls) -> "Settings":
-        config_raw = env("MODBUSUA_CONFIG")
-        if not config_raw:
-            raise RuntimeError("Не задан MODBUSUA_CONFIG в .env")
+        config_raw = env("MODBUSUA_CONFIG", str(DEFAULT_CONFIG_FILE)) or str(DEFAULT_CONFIG_FILE)
         config_file = Path(config_raw).expanduser().resolve()
+        if config_file == DEFAULT_CONFIG_FILE.resolve():
+            ensure_default_config(config_file)
 
         endpoint = env("MODBUSUA_OPCUA_ENDPOINT", "opc.tcp://127.0.0.1:4840") or "opc.tcp://127.0.0.1:4840"
         namespace = int(env("MODBUSUA_OPCUA_NAMESPACE_INDEX", "2") or "2")
         app_name = env("MODBUSUA_OPCUA_APP_NAME", "modbusua") or "modbusua"
 
         exe_raw = env("MODBUSUA_EXECUTABLE", "") or ""
-        executable = Path(exe_raw).expanduser().resolve() if exe_raw else None
+        default_exe = BASE_DIR.parent / ("modbusua.exe" if os.name == "nt" else "modbusua")
+        executable = Path(exe_raw).expanduser().resolve() if exe_raw else default_exe.resolve()
         workdir_raw = env("MODBUSUA_WORKDIR", "") or ""
-        workdir = Path(workdir_raw).expanduser().resolve() if workdir_raw else (executable.parent if executable else config_file.parent)
+        workdir = Path(workdir_raw).expanduser().resolve() if workdir_raw else BASE_DIR.parent.resolve()
 
         run_mode = (env("MODBUSUA_RUN_MODE", "process") or "process").strip().lower()
         if run_mode not in {"process", "service"}:
