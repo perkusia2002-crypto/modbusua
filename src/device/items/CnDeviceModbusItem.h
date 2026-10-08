@@ -29,7 +29,12 @@ class CnDeviceMessage;
     `<arraysuffix>` – data-type suffix for reading an array of registers (mandatory for register arrays). Possible values:\n
     \li `B` – array has type `String`, representing a sequence of bytes, each represented by two hexadecimal (HEX) characters
     (no spaces or separators). Characters A–F must be uppercase. High bits of a byte go first (left), low bits last (right).
-    The low byte of a register goes first (left), the high byte second (right). For the following PLC memory snapshot:
+    The low byte of a register goes first (left), the high byte second (right).
+
+    \li Byte-order suffixes `SB/RB/IB/UB/LLB/ULB/FB/LFB` swap the two bytes inside every 16-bit
+    Modbus register while keeping register order unchanged.
+    \li Combined suffixes `ISB/USB/LLSB/ULSB/FSB/LFSB` swap both 16-bit register order and
+    the two bytes inside each register. For the following PLC memory snapshot:
     400001|400002|...|400010
     ------|------|---|------
     0x0BCD|0x80FE|...|0xFC05
