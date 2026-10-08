@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <cwchar>
 #include <cassert>
+#include <filesystem>
 #include <sstream>
 #include <csignal>
 
@@ -344,10 +345,20 @@ void CnApp::startEngineeringUi()
 
 #ifdef _WIN32
     const CnString launcher = CnApp::applicationDir().absoluteFilePath(CnSTR("ui\\run.bat"));
+#else
+    const CnString launcher = CnApp::applicationDir().absoluteFilePath(CnSTR("ui/run.sh"));
+#endif
+
+    if (!std::filesystem::exists(std::filesystem::path(Cn::toStdString(launcher))))
+    {
+        CN_LOG_Warning(CnSTR("Engineering UI launcher not found: '%s'"), launcher.data());
+        return;
+    }
+
+#ifdef _WIN32
     std::string command = "start \"modbusua-ui\" /min cmd.exe /c call \"" +
                           Cn::toStdString(launcher) + "\"";
 #else
-    const CnString launcher = CnApp::applicationDir().absoluteFilePath(CnSTR("ui/run.sh"));
     std::string command = "cd \"" + Cn::toStdString(uiDir) +
                           "\" && sh \"" + Cn::toStdString(launcher) +
                           "\" >/dev/null 2>&1 &";
