@@ -217,6 +217,9 @@ int CnApp::run()
         return 1;
     }
 
+    if (m_options.ui)
+        startEngineeringUi();
+
     initialize(cfg);
     while (m_ctrlRun)
     {
@@ -317,6 +320,11 @@ void CnApp::parseArgs(int argc, char *argv[])
             m_options.file = Cn::toString(argv[i]);
             continue;
         }
+        if (!std::strcmp(opt, "--ui"))
+        {
+            m_options.ui = true;
+            continue;
+        }
         if (!parseArg(argc, argv, i))
         {
             printHelp();
@@ -328,6 +336,27 @@ void CnApp::parseArgs(int argc, char *argv[])
 bool CnApp::parseArg(int argc, char *argv[], int &i)
 {
     return false;
+}
+
+void CnApp::startEngineeringUi()
+{
+    const CnString uiDir = CnApp::applicationDir().absoluteFilePath(CnSTR("ui"));
+
+#ifdef _WIN32
+    const CnString launcher = CnApp::applicationDir().absoluteFilePath(CnSTR("ui\\run.bat"));
+    std::string command = "start \"modbusua-ui\" /min cmd.exe /c call \"" +
+                          Cn::toStdString(launcher) + "\"";
+#else
+    const CnString launcher = CnApp::applicationDir().absoluteFilePath(CnSTR("ui/run.sh"));
+    std::string command = "cd \"" + Cn::toStdString(uiDir) +
+                          "\" && sh \"" + Cn::toStdString(launcher) +
+                          "\" >/dev/null 2>&1 &";
+#endif
+
+    if (std::system(command.c_str()) != 0)
+        CN_LOG_Warning(CnSTR("Can't start engineering UI from '%s'"), uiDir.data());
+    else
+        CN_LOG_Info(CnSTR("Engineering UI started from '%s'"), uiDir.data());
 }
 
 void CnApp::printVersion()
@@ -344,7 +373,8 @@ void CnApp::printHelp()
                    CnSTR("  -h, -?, --help            show this help\n")
                    CnSTR("  -s, --service-name <name> service name, default: ") << m_name.data() << CnSTR("\n") <<
                    CnSTR("      --logdir <dir>        directory for log files, default: ") << m_defaultLogDirPath << CnSTR("\n") <<
-                   CnSTR("  -f, --file <file>         configuration file name, default: ") << m_defaultFileConf << CnSTR("\n");
+                   CnSTR("  -f, --file <file>         configuration file name, default: ") << m_defaultFileConf << CnSTR("\n") <<
+                   CnSTR("      --ui                  start engineering web UI from application/ui\n");
 }
 
 void CnApp::processStopThreads()
