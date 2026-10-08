@@ -212,6 +212,13 @@ int CnApp::run()
     CnStd::cout << m_name << CnSTR(" starting ...") << std::endl;
 
     CnEventLoop loop;
+    if (m_options.ui && m_options.file.empty())
+    {
+        const CnString bundledConfig = CnApp::applicationDir().absoluteFilePath(CnSTR("ui\\conf\\modbusua.conf"));
+        if (std::filesystem::exists(std::filesystem::path(Cn::toStdString(bundledConfig))))
+            m_options.file = bundledConfig;
+    }
+
     CnCfgProject *cfg = loadConfig();
     if (!cfg)
     {
