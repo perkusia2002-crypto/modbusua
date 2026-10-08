@@ -365,9 +365,13 @@ void CnApp::startEngineeringUi()
 #endif
 
     if (std::system(command.c_str()) != 0)
+    {
         CN_LOG_Warning(CnSTR("Can't start engineering UI from '%s'"), uiDir.data());
+    }
     else
+    {
         CN_LOG_Info(CnSTR("Engineering UI started from '%s'"), uiDir.data());
+    }
 }
 
 void CnApp::printVersion()
