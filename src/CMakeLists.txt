@@ -274,6 +274,17 @@ if (WIN32)
 	install(FILES   ${CN_WIN_HELP_FILES}     DESTINATION "./doc")
     install(FILES   ${CN_WIN_CHANGELOG_FILE} DESTINATION "./doc")
 	install(DIRECTORY 					     DESTINATION "./log")
+
+    if (EXISTS "${CMAKE_SOURCE_DIR}/ui")
+        install(
+            DIRECTORY "${CMAKE_SOURCE_DIR}/ui/"
+            DESTINATION "./ui"
+            PATTERN "__pycache__" EXCLUDE
+            PATTERN "*.pyc" EXCLUDE
+            PATTERN ".venv" EXCLUDE
+            PATTERN ".env" EXCLUDE
+        )
+    endif()
 else()
 	# Example of starting install process:
 	# `$ sudo cmake --install ~/tmp/cmake/chainua/Linux/Debug --prefix /`
