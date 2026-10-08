@@ -1,21 +1,47 @@
 # modbusua Engineering UI
 
-This directory is reserved for the companion engineering web console.
+The companion engineering web console for modbusua Gateway.
 
-The current polished UI package contains:
+## Current UI
 
-- Dashboard and gateway health
-- Device + Port administration
-- item reference builder
-- online OPC UA monitor with read/write
-- OPC UA namespace browser
-- Modbus engineering tester
-- FC 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x0B, 0x0C, 0x0F, 0x10, 0x11, 0x14, 0x15, 0x16, 0x17, 0x18 and 0x2B
-- diagnostics
-- logs
-- configuration validation/backup/reload
-- start/stop/restart
-- `.env` authentication
-- register-order and independent byte-order selection.
+- Dashboard with devices, ports and variable count
+- Variable list
+- Add Variable dialog
+- Variable address checker
+- Explicit address numbering: `1-based` / `0-based`
+- Live address conversion preview
+- Modbus Item Reference preview
+- Server zero-based offset preview
+- Register-order and byte-order selection
+- Configuration viewer
+- Password authentication through `.env`
 
-The standalone package is built from the same engineering UI source used during development.
+### Address numbering
+
+The Add Variable dialog and the standalone address checker use the same rule.
+
+`1-based`:
+
+```text
+1 -> 400001 -> server offset 0
+2 -> 400002 -> server offset 1
+```
+
+`0-based`:
+
+```text
+0 -> 400001 -> server offset 0
+1 -> 400002 -> server offset 1
+```
+
+The gateway parser itself converts Modbus Item References such as `400001` to an internal zero-based offset.
+
+## Run on Windows
+
+Create `ui/.env` from `ui/.env.example`, set a password, then run:
+
+```bat
+run.bat
+```
+
+The UI listens on the address and port configured by `MODBUSUA_UI_HOST` and `MODBUSUA_UI_PORT` (default `127.0.0.1:8088`).
