@@ -216,6 +216,17 @@ endif()
 
 add_executable(${CN_APP_NAME} ${CN_HEADERS} ${CN_SOURCES} ${CN_RESOURCES})
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/ui")
+    add_custom_command(
+        TARGET ${CN_APP_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_SOURCE_DIR}/ui"
+                "$<TARGET_FILE_DIR:${CN_APP_NAME}>/ui"
+        COMMENT "Copy engineering UI beside ${CN_APP_NAME}"
+    )
+endif()
+
 include_directories(.
                     ..
                     ../modbus/src
