@@ -9,6 +9,7 @@
 #define CNUTILS_H
 
 #include <string>
+#include <cstddef>
 #include <codecvt>
 #include <locale>
 
