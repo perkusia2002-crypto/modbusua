@@ -174,6 +174,34 @@ CnDeviceModbusItem *createDeviceModbusItem(Cn::DataSuffix type, Modbus::MemoryTy
             return new CnDeviceModbusItem0xSwappedDouble(device, offset, period, messageId);
         case Cn::Suffix_ByteArray:
             return new CnDeviceModbusItem0xByteArray(device, offset, count, period, messageId);
+        case Cn::Suffix_ByteSwappedInt16:
+            return new CnDeviceModbusItem0xByteSwappedInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt16:
+            return new CnDeviceModbusItem0xByteSwappedUInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt32:
+            return new CnDeviceModbusItem0xByteSwappedInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt32:
+            return new CnDeviceModbusItem0xByteSwappedUInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt64:
+            return new CnDeviceModbusItem0xByteSwappedInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt64:
+            return new CnDeviceModbusItem0xByteSwappedUInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedFloat:
+            return new CnDeviceModbusItem0xByteSwappedFloat(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedDouble:
+            return new CnDeviceModbusItem0xByteSwappedDouble(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt32:
+            return new CnDeviceModbusItem0xSwappedByteInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt32:
+            return new CnDeviceModbusItem0xSwappedByteUInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt64:
+            return new CnDeviceModbusItem0xSwappedByteInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt64:
+            return new CnDeviceModbusItem0xSwappedByteUInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteFloat:
+            return new CnDeviceModbusItem0xSwappedByteFloat(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteDouble:
+            return new CnDeviceModbusItem0xSwappedByteDouble(device, offset, period, messageId);
         default:
             return nullptr;
         }
@@ -213,6 +241,34 @@ CnDeviceModbusItem *createDeviceModbusItem(Cn::DataSuffix type, Modbus::MemoryTy
             return new CnDeviceModbusItem1xSwappedDouble(device, offset, period, messageId);
         case Cn::Suffix_ByteArray:
             return new CnDeviceModbusItem1xByteArray(device, offset, count, period, messageId);
+        case Cn::Suffix_ByteSwappedInt16:
+            return new CnDeviceModbusItem1xByteSwappedInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt16:
+            return new CnDeviceModbusItem1xByteSwappedUInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt32:
+            return new CnDeviceModbusItem1xByteSwappedInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt32:
+            return new CnDeviceModbusItem1xByteSwappedUInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt64:
+            return new CnDeviceModbusItem1xByteSwappedInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt64:
+            return new CnDeviceModbusItem1xByteSwappedUInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedFloat:
+            return new CnDeviceModbusItem1xByteSwappedFloat(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedDouble:
+            return new CnDeviceModbusItem1xByteSwappedDouble(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt32:
+            return new CnDeviceModbusItem1xSwappedByteInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt32:
+            return new CnDeviceModbusItem1xSwappedByteUInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt64:
+            return new CnDeviceModbusItem1xSwappedByteInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt64:
+            return new CnDeviceModbusItem1xSwappedByteUInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteFloat:
+            return new CnDeviceModbusItem1xSwappedByteFloat(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteDouble:
+            return new CnDeviceModbusItem1xSwappedByteDouble(device, offset, period, messageId);
         default:
             return nullptr;
         }
@@ -251,6 +307,34 @@ CnDeviceModbusItem *createDeviceModbusItem(Cn::DataSuffix type, Modbus::MemoryTy
             return new CnDeviceModbusItem3xSwappedDouble(device, offset, period, messageId);
         case Cn::Suffix_ByteArray:
             return new CnDeviceModbusItem3xByteArray(device, offset, count, period, messageId);
+        case Cn::Suffix_ByteSwappedInt16:
+            return new CnDeviceModbusItem3xByteSwappedInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt16:
+            return new CnDeviceModbusItem3xByteSwappedUInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt32:
+            return new CnDeviceModbusItem3xByteSwappedInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt32:
+            return new CnDeviceModbusItem3xByteSwappedUInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt64:
+            return new CnDeviceModbusItem3xByteSwappedInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt64:
+            return new CnDeviceModbusItem3xByteSwappedUInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedFloat:
+            return new CnDeviceModbusItem3xByteSwappedFloat(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedDouble:
+            return new CnDeviceModbusItem3xByteSwappedDouble(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt32:
+            return new CnDeviceModbusItem3xSwappedByteInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt32:
+            return new CnDeviceModbusItem3xSwappedByteUInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt64:
+            return new CnDeviceModbusItem3xSwappedByteInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt64:
+            return new CnDeviceModbusItem3xSwappedByteUInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteFloat:
+            return new CnDeviceModbusItem3xSwappedByteFloat(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteDouble:
+            return new CnDeviceModbusItem3xSwappedByteDouble(device, offset, period, messageId);
         default:
             return nullptr;
         }
@@ -289,6 +373,34 @@ CnDeviceModbusItem *createDeviceModbusItem(Cn::DataSuffix type, Modbus::MemoryTy
             return new CnDeviceModbusItem4xSwappedDouble(device, offset, period, messageId);
         case Cn::Suffix_ByteArray:
             return new CnDeviceModbusItem4xByteArray(device, offset, count, period, messageId);
+        case Cn::Suffix_ByteSwappedInt16:
+            return new CnDeviceModbusItem4xByteSwappedInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt16:
+            return new CnDeviceModbusItem4xByteSwappedUInt16(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt32:
+            return new CnDeviceModbusItem4xByteSwappedInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt32:
+            return new CnDeviceModbusItem4xByteSwappedUInt32(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedInt64:
+            return new CnDeviceModbusItem4xByteSwappedInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedUInt64:
+            return new CnDeviceModbusItem4xByteSwappedUInt64(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedFloat:
+            return new CnDeviceModbusItem4xByteSwappedFloat(device, offset, period, messageId);
+        case Cn::Suffix_ByteSwappedDouble:
+            return new CnDeviceModbusItem4xByteSwappedDouble(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt32:
+            return new CnDeviceModbusItem4xSwappedByteInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt32:
+            return new CnDeviceModbusItem4xSwappedByteUInt32(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteInt64:
+            return new CnDeviceModbusItem4xSwappedByteInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteUInt64:
+            return new CnDeviceModbusItem4xSwappedByteUInt64(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteFloat:
+            return new CnDeviceModbusItem4xSwappedByteFloat(device, offset, period, messageId);
+        case Cn::Suffix_SwappedByteDouble:
+            return new CnDeviceModbusItem4xSwappedByteDouble(device, offset, period, messageId);
         default:
             return nullptr;
         }
