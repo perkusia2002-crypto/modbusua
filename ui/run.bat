@@ -12,9 +12,9 @@ if not exist ".env" (
         goto :failed
     )
     copy /y ".env.example" ".env" >nul
-    echo Created .env from .env.example. Set MODBUSUA_UI_PASSWORD and MODBUSUA_UI_SECRET.>> "%LOG%"
+    echo Created .env from .env.example. Set MODBUSUA_UI_PASSWORD, save, then start UI again.>> "%LOG%"
     start "" notepad.exe "%~dp0.env"
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Created ui\.env. Set MODBUSUA_UI_PASSWORD and MODBUSUA_UI_SECRET, save the file, then run modbusua.exe --ui again.','modbusua UI setup',[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Information) | Out-Null" >nul 2>&1
+    echo First start: set MODBUSUA_UI_PASSWORD in ui\.env, save and launch again.
     exit /b 2
 )
 

@@ -1,47 +1,52 @@
-# modbusua Engineering UI
+# modbusua UI
 
-The companion engineering web console for modbusua Gateway.
+Инженерная web-панель для `modbusua Gateway`.
 
-## Current UI
+## Возможности
 
-- Dashboard with devices, ports and variable count
-- Variable list
-- Add Variable dialog
-- Variable address checker
-- Explicit address numbering: `1-based` / `0-based`
-- Live address conversion preview
-- Modbus Item Reference preview
-- Server zero-based offset preview
-- Register-order and byte-order selection
-- Configuration viewer
-- Password authentication through `.env`
+- Авторизация одним паролем из `.env`, регистрации нет.
+- Запуск, остановка и перезапуск `modbusua` как процесса или службы.
+- Сохранение настроек Port + Device в конфигурацию.
+- Добавление устройства автоматически создаёт связанный Port и CSV-файл переменных.
+- Переменные создаются через конструктор `область → регистр → тип → период → порядок регистров → msgid`.
+- Существующие `i:` и `itemfile=` читаются из основного файла и `include`.
+- Онлайн-таблица: ручное чтение, массовое чтение, качество, timestamp и запись через OPC UA.
+- OPC UA Browser: просмотр дерева, NodeId, NodeClass, тип Variant и ручное чтение.
+- **Инженерная диагностика:** состояние процесса, CPU/RSS/потоки/uptime, OPC UA, проверка конфигурации, резервная копия и список журналов.
+- **Прямой Modbus-тест:** FC01/02/03/04/05/06/15/16, Unit, адрес 1-based или 0-based, количество, таймаут, тип данных, порядок 16-битных регистров и порядок байт.
+- Декодирование `UInt16/Int16/UInt32/Int32/UInt64/Int64/Float/Double/ByteArray`.
+- Для настроенных `modbusua` items запись остаётся ограниченной реальными функциями записи 0x/4x.
+- Все изменения конфигурационных файлов делают `.bak` копию.
 
-### Address numbering
+## Прямой Modbus-тестер
 
-The Add Variable dialog and the standalone address checker use the same rule.
+Тестер выполняет отдельный диагностический запрос и не создаёт/не изменяет `i:` item. Для TCP это отдельное соединение с указанным Port. Для RS-485/RTU нельзя одновременно владеть одним COM-портом из gateway и тестера — оператор должен остановить/освободить порт перед прямым тестом.
 
-`1-based`:
+Адреса в интерфейсе по умолчанию отображаются в удобной **1-based** форме: регистр `1` преобразуется в протокольный адрес `0`. Для устройств, где документация даёт нулевые адреса, переключите адресацию в `0-based`.
+
+Порядок 16-битных регистров и порядок байт — разные настройки: `normal/reverse` меняет последовательность 16-битных слов, а `standard/swapped` меняет два байта внутри каждого слова.
+
+## Запуск Windows
+
+1. Распакуйте UI в папку `ui` рядом с `modbusua.exe`.
+2. Запустите `run.bat` либо запустите `modbusua.exe --ui` из комплекта gateway.
+3. При первом запуске создастся `ui\.env`; в открывшемся файле задайте `MODBUSUA_UI_PASSWORD`, сохраните и запустите UI повторно.
+4. Конфигурация gateway по умолчанию находится в `ui\conf\modbusua.conf`. В `.env` указывать пути к конфигу и EXE обычно не нужно.
+5. Откройте `http://127.0.0.1:8088`.
+
+Если запуск не удался, смотрите `ui-startup.log` в каталоге `ui`.
+
+Новый файл переменных для устройства создаётся автоматически:
 
 ```text
-1 -> 400001 -> server offset 0
-2 -> 400002 -> server offset 1
+<каталог conf>/items/<DeviceName>.csv
 ```
 
-`0-based`:
+В конфигурации устройства появляется:
 
-```text
-0 -> 400001 -> server offset 0
-1 -> 400002 -> server offset 1
+```ini
+itemfile=items/<DeviceName>.csv
 ```
 
-The gateway parser itself converts Modbus Item References such as `400001` to an internal zero-based offset.
 
-## Run on Windows
-
-Create `ui/.env` from `ui/.env.example`, set a password, then run:
-
-```bat
-run.bat
-```
-
-The UI listens on the address and port configured by `MODBUSUA_UI_HOST` and `MODBUSUA_UI_PORT` (default `127.0.0.1:8088`).
+Примечание: страницу UI открывайте через http://127.0.0.1:8088. Файл static/app.js является служебным JavaScript и отдельно открывать его не нужно.

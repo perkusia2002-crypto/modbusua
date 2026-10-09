@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "modbusua-ui"
-version = "0.7.0"
-description = "Engineering web UI for modbusua Gateway"
+version = "0.6.0"
+description = "Web UI for modbusua Gateway"
 requires-python = ">=3.10"
 dependencies = [
   "fastapi>=0.110",
