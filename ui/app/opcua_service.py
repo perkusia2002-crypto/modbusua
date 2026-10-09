@@ -35,6 +35,15 @@ class OpcUaService:
             client = Client(url=self.endpoint)
             try:
                 await client.connect()
+                # Resolve the gateway namespace by URI instead of assuming ns=2.
+                try:
+                    namespace_uris = await client.get_namespace_array()
+                    expected_uri = f"{self.app_node_name}.serhmarch.github.com"
+                    if expected_uri in namespace_uris:
+                        self.namespace_index = namespace_uris.index(expected_uri)
+                except Exception:
+                    # Keep the configured index as a fallback.
+                    pass
             except Exception:
                 try:
                     await client.disconnect()
