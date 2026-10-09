@@ -105,11 +105,15 @@ def items(text: str) -> list[dict[str, Any]]:
 
 
 def protocol_address(address: int, base: str) -> int:
-    if address < 0 or address > 99998:
-        raise ValueError("Адрес должен быть от 0 до 99998")
     if base not in {"0-based", "1-based"}:
         raise ValueError("Нумерация должна быть 0-based или 1-based")
-    return address + 1 if base == "0-based" else address
+    if base == "0-based":
+        if address < 0 or address > 65535:
+            raise ValueError("При 0-based адресации адрес должен быть от 0 до 65535")
+        return address + 1
+    if address < 1 or address > 65536:
+        raise ValueError("При 1-based адресации адрес должен быть от 1 до 65536")
+    return address
 
 
 class Login(BaseModel):
@@ -117,7 +121,7 @@ class Login(BaseModel):
 
 
 class AddressCheck(BaseModel):
-    address: int = Field(ge=0, le=99998)
+    address: int = Field(ge=0, le=65536)
     base: str = "1-based"
     memory: str = "4x"
 
@@ -289,7 +293,7 @@ offset 0
 Item Reference 400001
   ↓
 offset 0</pre></div></div></section></div></main></div>
-<div class="modal" id="modal"><div class="card"><div class="row"><h3>Добавить переменную</h3><button class="btn" onclick="closeModal()">Закрыть</button></div><div class="form"><div class="field"><label>Имя</label><input id="vn" placeholder="Pump_Frequency"></div><div class="field"><label>Устройство</label><select id="vd"></select></div><div class="field"><label>Тип памяти</label><select id="vm"><option>0x</option><option>1x</option><option>3x</option><option selected>4x</option></select></div><div class="field"><label>Тип данных</label><select id="vt"><option value="S">Int16</option><option value="R">UInt16</option><option value="I">Int32</option><option value="U">UInt32</option><option value="LL">Int64</option><option value="UL">UInt64</option><option value="F" selected>Float</option><option value="LF">Double</option><option value="B">Byte Array</option></select></div><div class="field"><label>Порядок регистров</label><select id="vr"><option value="normal" selected>Обычный</option><option value="swapped">Обратный</option></select></div><div class="field"><label>Порядок байт</label><select id="vb"><option value="normal" selected>Обычный</option><option value="swapped">Обратный</option></select></div><div class="field"><label>Адрес</label><input id="va" value="1" inputmode="numeric" oninput="previewVar()"></div><div class="field"><label>Нумерация адреса</label><select id="vbase" onchange="previewVar()"><option value="1-based">1-based</option><option value="0-based">0-based</option></select></div><div class="field"><label>Период, мс</label><input id="vp" value="500" inputmode="numeric"></div><div class="field full"><label>Предпросмотр</label><div id="pv" class="preview">—</div></div></div><div id="ve" class="notice bad" style="display:none"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="addVar()">Добавить</button></div></div></div>
+<div class="modal" id="modal"><div class="card"><div class="row"><h3>Добавить переменную</h3><button class="btn" onclick="closeModal()">Закрыть</button></div><div class="form"><div class="field"><label>Имя</label><input id="vn" placeholder="Pump_Frequency"></div><div class="field"><label>Устройство</label><select id="vd"></select></div><div class="field"><label>Тип памяти</label><select id="vm"><option>0x</option><option>1x</option><option>3x</option><option selected>4x</option></select></div><div class="field"><label>Тип данных</label><select id="vt"><option value="S">Int16</option><option value="R">UInt16</option><option value="I">Int32</option><option value="U">UInt32</option><option value="LL">Int64</option><option value="UL">UInt64</option><option value="F" selected>Float</option><option value="LF">Double</option><option value="B">Byte Array</option></select></div><div class="field"><label>Порядок регистров</label><select id="vr"><option value="normal" selected>Обычный</option><option value="swapped">Обратный</option></select></div><div class="field"><label>Порядок байт</label><select id="vb"><option value="normal" selected>Обычный</option><option value="swapped">Обратный</option></select></div><div class="field"><label>Адрес</label><input id="va" value="1" inputmode="numeric" oninput="previewVar()"></div><div class="field"><label>Нумерация адреса (как в тестере Modbus)</label><select id="vbase" onchange="previewVar()"><option value="1-based">1-based — адрес начинается с 1</option><option value="0-based">0-based — адрес начинается с 0</option></select><div class="small">0-based: ввод 0 создаёт первый регистр в Item Reference (например, 400001).</div></div><div class="field"><label>Период, мс</label><input id="vp" value="500" inputmode="numeric"></div><div class="field full"><label>Предпросмотр</label><div id="pv" class="preview">—</div></div></div><div id="ve" class="notice bad" style="display:none"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="addVar()">Добавить</button></div></div></div>
 <script>
 const $=id=>document.getElementById(id), titles={home:'Обзор',vars:'Переменные',check:'Проверка',addr:'Адресация',cfg:'Конфигурация'};let S={};
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));$(b.dataset.page).classList.add('active');$('title').textContent=titles[b.dataset.page]});
