@@ -28,7 +28,10 @@ foreach(_file IN LISTS _required_ui_files)
 endforeach()
 
 file(MAKE_DIRECTORY "${CN_UI_DEST}")
+file(MAKE_DIRECTORY "${CN_UI_DEST}/conf")
 
+# Runtime settings belong to the built application. Do not overwrite them on
+# every build after the operator edits devices, ports or itemfile references.
 file(COPY "${CN_UI_SOURCE}/"
     DESTINATION "${CN_UI_DEST}"
     PATTERN ".venv" EXCLUDE
@@ -36,6 +39,17 @@ file(COPY "${CN_UI_SOURCE}/"
     PATTERN "*.pyc" EXCLUDE
     PATTERN ".pytest_cache" EXCLUDE
     PATTERN "data" EXCLUDE
+    PATTERN ".env" EXCLUDE
+    PATTERN "modbusua.conf" EXCLUDE
+    PATTERN "items" EXCLUDE
 )
+
+if(NOT EXISTS "${CN_UI_DEST}/conf/modbusua.conf")
+    file(COPY "${CN_UI_SOURCE}/conf/modbusua.conf" DESTINATION "${CN_UI_DEST}/conf")
+endif()
+
+if(IS_DIRECTORY "${CN_UI_SOURCE}/conf/items" AND NOT EXISTS "${CN_UI_DEST}/conf/items")
+    file(COPY "${CN_UI_SOURCE}/conf/items" DESTINATION "${CN_UI_DEST}/conf")
+endif()
 
 message(STATUS "Engineering UI deployed to: ${CN_UI_DEST}")
