@@ -20,6 +20,15 @@ function esc(v) { return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;',
 function fmt(v) { if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(Number(v.toFixed(6))); if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE'; if (v && typeof v === 'object') { if (v.encoding==='base64') return `Base64: ${v.value||''}`; try{return JSON.stringify(v);}catch{return String(v);} } return String(v ?? '—'); }
 function showNotice(msg, kind='ok') { const el=$('notice'); el.textContent=msg; el.className=`notice ${kind}`; setTimeout(()=>el.classList.add('hidden'),4000); }
 async function api(url, options={}) { const r=await fetch(url,{cache:'no-store',credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options}); if(r.status===401){ location.href='/'; throw new Error('Сеанс завершён'); } const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.detail||`HTTP ${r.status}`); return d; }
+async function reloadConfigAfterChange(message) {
+  try {
+    await api('/api/reload', {method:'POST'});
+    showNotice(`${message}. Конфигурация шлюза применена`, 'ok');
+    setTimeout(refresh, 800);
+  } catch (e) {
+    showNotice(`${message}. Файл сохранён, но шлюз не применил изменения: ${e.message}. Запусти шлюз и нажми «Перезагрузить конфигурацию».`, 'error');
+  }
+}
 
 function setPage(page){
   state.page=page;
@@ -84,14 +93,59 @@ function updateOrderOptions(){
 }
 function openItemAdd(){ state.editingItem=null; fillSelect('item-device-input',state.data.devices.map(x=>x.name),state.selectedDevice); $('item-dialog-title').textContent='Добавить переменную'; $('item-old-name').value=''; $('item-name-input').value=''; $('item-area').value='4'; $('item-address-mode').value='one_based'; $('item-register').value='1'; $('item-period').value='500'; $('item-end-register').value=''; $('item-message-id').value=''; $('item-register-order').value='normal'; updateTypeOptions(); updateItemAddressMode(); $('item-device-input').disabled=false; $('item-dialog').showModal(); }
 function openItemEdit(i){ state.editingItem=i; fillSelect('item-device-input',state.data.devices.map(x=>x.name),i.device); $('item-device-input').disabled=true; $('item-dialog-title').textContent='Изменить переменную'; $('item-old-name').value=i.name; $('item-name-input').value=i.name; $('item-area').value=i.area||4; $('item-address-mode').value='one_based'; $('item-register').value=i.register||1; $('item-period').value=i.period_ms||500; $('item-end-register').value=i.end_register||''; $('item-message-id').value=i.message_id||''; $('item-register-order').value=i.register_order||'normal'; updateTypeOptions(); $('item-data-type').value=i.data_type||'UInt16'; $('item-register-order').value=i.register_order||'normal'; $('item-end-wrap').classList.toggle('hidden',i.data_type!=='ByteArray'); updateOrderOptions(); updateItemAddressMode(); $('item-dialog').showModal(); }
-async function saveItem(e){ e.preventDefault(); try { const payload={device:$('item-device-input').value,old_name:state.editingItem?.name,name:$('item-name-input').value.trim(),area:Number($('item-area').value),address_mode:$('item-address-mode').value,register:Number($('item-register').value),data_type:$('item-data-type').value,period_ms:Number($('item-period').value),register_order:$('item-register-order').value,end_register:$('item-data-type').value==='ByteArray'?Number($('item-end-register').value):null,message_id:$('item-message-id').value.trim()}; if(state.editingItem){await api('/api/items',{method:'PUT',body:JSON.stringify(payload)});showNotice('Переменная изменена');}else{await api('/api/items',{method:'POST',body:JSON.stringify(payload)});showNotice('Переменная добавлена');} $('item-device-input').disabled=false;$('item-dialog').close();await refresh();setPage('items'); }catch(e){showNotice(e.message,'error');}}
-async function deleteItem(name){ if(!confirm(`Удалить переменную «${name}»?`))return; try{await api('/api/items',{method:'DELETE',body:JSON.stringify({device:state.selectedDevice,name})});showNotice('Переменная удалена');await refresh();}catch(e){showNotice(e.message,'error');} }
+async function saveItem(e){
+  e.preventDefault();
+  const message = state.editingItem ? 'Переменная изменена' : 'Переменная добавлена';
+  try {
+    const payload = {device:$('item-device-input').value,old_name:state.editingItem?.name,name:$('item-name-input').value.trim(),area:Number($('item-area').value),address_mode:$('item-address-mode').value,register:Number($('item-register').value),data_type:$('item-data-type').value,period_ms:Number($('item-period').value),register_order:$('item-register-order').value,end_register:$('item-data-type').value==='ByteArray'?Number($('item-end-register').value):null,message_id:$('item-message-id').value.trim()};
+    if (state.editingItem) await api('/api/items',{method:'PUT',body:JSON.stringify(payload)});
+    else await api('/api/items',{method:'POST',body:JSON.stringify(payload)});
+    $('item-device-input').disabled = false;
+    $('item-dialog').close();
+    await refresh();
+    setPage('items');
+    await reloadConfigAfterChange(message);
+  } catch (e) { showNotice(e.message, 'error'); }
+}
+async function deleteItem(name){
+  if (!confirm(`Удалить переменную «${name}»?`)) return;
+  try {
+    await api('/api/items',{method:'DELETE',body:JSON.stringify({device:state.selectedDevice,name})});
+    await refresh();
+    await reloadConfigAfterChange('Переменная удалена');
+  } catch (e) { showNotice(e.message, 'error'); }
+}
 
 function setDeviceDefaults(){ $('device-name').value=''; $('device-port-name').value=''; $('device-port-type').value='TCP'; $('device-host').value='127.0.0.1'; $('device-port-number').value='502'; $('device-port-timeout').value='2000'; $('device-port-enable').value='1'; $('device-port-repeat').value='2'; const defs={unit:'1',enable:'1',repeat:'2',restore:'10000',period:'500',request:'5000','max-coils':'2000','max-write-coils':'2000','max-di':'2000','max-ir':'120','max-hr':'120','max-write-reg':'120'}; for(const [id,v] of Object.entries(defs)) $('device-'+id).value=v; }
 function openDeviceAdd(){ state.editingDevice=null;$('device-dialog-title').textContent='Добавить устройство';$('device-old-name').value='';setDeviceDefaults();$('device-dialog').showModal(); }
 function openDeviceEdit(d){ const p=d.port||{}; state.editingDevice=d;$('device-dialog-title').textContent='Изменить устройство';$('device-old-name').value=d.name;$('device-name').value=d.name;$('device-port-name').value=d.PortName||'';$('device-port-type').value=p.Type||'TCP';$('device-host').value=p.Host||'';$('device-port-number').value=p.Port||'';$('device-port-timeout').value=p.Timeout||'';$('device-port-enable').value=p.Enable||'1';$('device-port-repeat').value=p.RepeatCount||'2'; for(const [id,key] of [['unit','ModbusUnit'],['enable','EnableDevice'],['repeat','RepeatCount'],['restore','RestoreTimeout'],['period','DefaultPeriod'],['request','RequestTimeout'],['max-coils','MaxReadCoils'],['max-write-coils','MaxWriteMultipleCoils'],['max-di','MaxReadDiscreteInputs'],['max-ir','MaxReadInputRegisters'],['max-hr','MaxReadHoldingRegisters'],['max-write-reg','MaxWriteMultipleRegisters']]) $('device-'+id).value=d[key]||''; $('device-dialog').showModal(); }
-async function saveDevice(e){ e.preventDefault(); try{ const p={name:$('device-name').value.trim(),PortName:$('device-port-name').value.trim(),PortEnable:$('device-port-enable').value,PortRepeatCount:$('device-port-repeat').value,PortType:$('device-port-type').value,Host:$('device-host').value.trim(),Port:$('device-port-number').value,PortTimeout:$('device-port-timeout').value,EnableDevice:$('device-enable').value,ModbusUnit:$('device-unit').value,RepeatCount:$('device-repeat').value,RestoreTimeout:$('device-restore').value,DefaultPeriod:$('device-period').value,RequestTimeout:$('device-request').value,MaxReadCoils:$('device-max-coils').value,MaxWriteMultipleCoils:$('device-max-write-coils').value,MaxReadDiscreteInputs:$('device-max-di').value,MaxReadInputRegisters:$('device-max-ir').value,MaxReadHoldingRegisters:$('device-max-hr').value,MaxWriteMultipleRegisters:$('device-max-write-reg').value}; if(state.editingDevice){p.old_name=state.editingDevice.name;await api('/api/devices',{method:'PUT',body:JSON.stringify(p)});showNotice('Устройство и порт изменены');}else{await api('/api/devices',{method:'POST',body:JSON.stringify(p)});showNotice('Устройство, порт и CSV созданы');state.selectedDevice=p.name;} $('device-dialog').close();await refresh();setPage('devices'); }catch(e){showNotice(e.message,'error');} }
-async function deleteDevice(name){if(!confirm(`Удалить устройство «${name}» и его порт?`))return;try{await api(`/api/devices?name=${encodeURIComponent(name)}`,{method:'DELETE'});showNotice('Устройство удалено');if(state.selectedDevice===name)state.selectedDevice=null;await refresh();}catch(e){showNotice(e.message,'error');}}
+async function saveDevice(e){
+  e.preventDefault();
+  const message = state.editingDevice ? 'Устройство и порт изменены' : 'Устройство, порт и CSV созданы';
+  try {
+    const p = {name:$('device-name').value.trim(),PortName:$('device-port-name').value.trim(),PortEnable:$('device-port-enable').value,PortRepeatCount:$('device-port-repeat').value,PortType:$('device-port-type').value,Host:$('device-host').value.trim(),Port:$('device-port-number').value,PortTimeout:$('device-port-timeout').value,EnableDevice:$('device-enable').value,ModbusUnit:$('device-unit').value,RepeatCount:$('device-repeat').value,RestoreTimeout:$('device-restore').value,DefaultPeriod:$('device-period').value,RequestTimeout:$('device-request').value,MaxReadCoils:$('device-max-coils').value,MaxWriteMultipleCoils:$('device-max-write-coils').value,MaxReadDiscreteInputs:$('device-max-di').value,MaxReadInputRegisters:$('device-max-ir').value,MaxReadHoldingRegisters:$('device-max-hr').value,MaxWriteMultipleRegisters:$('device-max-write-reg').value};
+    if (state.editingDevice) {
+      p.old_name = state.editingDevice.name;
+      await api('/api/devices',{method:'PUT',body:JSON.stringify(p)});
+    } else {
+      await api('/api/devices',{method:'POST',body:JSON.stringify(p)});
+      state.selectedDevice = p.name;
+    }
+    $('device-dialog').close();
+    await refresh();
+    setPage('devices');
+    await reloadConfigAfterChange(message);
+  } catch (e) { showNotice(e.message, 'error'); }
+}
+async function deleteDevice(name){
+  if (!confirm(`Удалить устройство «${name}» и его порт?`)) return;
+  try {
+    await api(`/api/devices?name=${encodeURIComponent(name)}`,{method:'DELETE'});
+    if (state.selectedDevice === name) state.selectedDevice = null;
+    await refresh();
+    await reloadConfigAfterChange('Устройство удалено');
+  } catch (e) { showNotice(e.message, 'error'); }
+}
 
 async function serverAction(action){if(!confirm(action==='start'?'Запустить modbusua?':action==='stop'?'Остановить modbusua?':'Перезапустить modbusua?'))return;try{await api(`/api/server/${action}`,{method:'POST'});showNotice(action==='start'?'Сервер запущен':action==='stop'?'Сервер остановлен':'Сервер перезапущен');setTimeout(refresh,800);}catch(e){showNotice(e.message,'error');}}
 async function reloadServer(){if(!confirm('Применить изменения и отправить ReloadConfig?'))return;try{await api('/api/reload',{method:'POST'});showNotice('ReloadConfig отправлен');setTimeout(refresh,800);}catch(e){showNotice(e.message,'error');}}
