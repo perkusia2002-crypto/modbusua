@@ -246,7 +246,7 @@
     <label>Имя переменной<input id="item-name-input" required maxlength="128"></label>
     <div class="form-grid">
       <label>Область Modbus<div class="combo"><select id="item-area"><option value="4">4x — Holding Register</option><option value="3">3x — Input Register</option><option value="1">1x — Discrete Input</option><option value="0">0x — Coil</option></select></div></label>
-      <label>Нумерация адреса<div class="combo"><select id="item-address-mode"><option value="one_based" selected>1-based — адрес с 1</option><option value="zero_based">0-based — адрес с 0</option></select></div><small class="muted">Как в тестировании Modbus. При 0-based адрес 0 станет первым регистром в Item Reference.</small></label>
+      <label>Нумерация адреса<div class="combo"><select id="item-address-mode"><option value="one_based" selected>1-based — адрес с 1</option><option value="zero_based">0-based — адрес с 0</option></select></div></label>
       <label>Регистр<input id="item-register" type="number" min="1" max="65536" value="1" required></label>
       <label>Тип данных<div class="combo"><select id="item-data-type"></select></div></label>
       <label>Порядок регистров<div class="combo"><select id="item-register-order"><option value="normal">Прямой — R0, R1, R2...</option><option value="reverse">Обратный — R1, R0...</option></select></div><small class="muted">Для многорегистровых типов</small></label>
