@@ -220,10 +220,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/ui")
     add_custom_command(
         TARGET ${CN_APP_NAME}
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_SOURCE_DIR}/ui"
-                "$<TARGET_FILE_DIR:${CN_APP_NAME}>/ui"
-        COMMENT "Copy engineering UI beside ${CN_APP_NAME}"
+        COMMAND ${CMAKE_COMMAND}
+                "-DCN_UI_SOURCE=${CMAKE_SOURCE_DIR}/ui"
+                "-DCN_UI_DEST=$<TARGET_FILE_DIR:${CN_APP_NAME}>/ui"
+                -P "${CMAKE_SOURCE_DIR}/cmake/DeployUi.cmake"
+        COMMENT "Deploy engineering UI beside ${CN_APP_NAME}"
     )
 endif()
 
