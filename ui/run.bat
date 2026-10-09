@@ -7,8 +7,14 @@ echo ===== modbusua UI startup %DATE% %TIME% =====> "%LOG%"
 echo Folder: %CD%>> "%LOG%"
 
 if not exist ".env" (
-    echo ERROR: .env was not found. Copy .env.example to .env and set MODBUSUA_UI_PASSWORD.>> "%LOG%"
-    echo UI not started: missing .env. See "%LOG%".
+    if not exist ".env.example" (
+        echo ERROR: .env.example was not found.>> "%LOG%"
+        goto :failed
+    )
+    copy /y ".env.example" ".env" >nul
+    echo Created .env from .env.example. Set MODBUSUA_UI_PASSWORD and MODBUSUA_UI_SECRET.>> "%LOG%"
+    start "" notepad.exe "%~dp0.env"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Created ui\.env. Set MODBUSUA_UI_PASSWORD and MODBUSUA_UI_SECRET, save the file, then run modbusua.exe --ui again.','modbusua UI setup',[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Information) | Out-Null" >nul 2>&1
     exit /b 2
 )
 
