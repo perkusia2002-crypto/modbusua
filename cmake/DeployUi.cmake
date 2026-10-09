@@ -6,12 +6,26 @@ if(NOT DEFINED CN_UI_DEST OR "${CN_UI_DEST}" STREQUAL "")
     message(FATAL_ERROR "CN_UI_DEST was not provided")
 endif()
 
-if(NOT EXISTS "${CN_UI_SOURCE}/app/main.py" OR
-   NOT EXISTS "${CN_UI_SOURCE}/app/server.py" OR
-   NOT EXISTS "${CN_UI_SOURCE}/requirements.txt")
-    message(FATAL_ERROR
-        "Engineering UI source is incomplete. Expected app/main.py, app/server.py and requirements.txt in '${CN_UI_SOURCE}'")
-endif()
+set(_required_ui_files
+    "app/main.py"
+    "app/server.py"
+    "app/auth.py"
+    "app/config_manager.py"
+    "app/modbus_service.py"
+    "app/opcua_service.py"
+    "app/process_manager.py"
+    "requirements.txt"
+    "static/index.html"
+    "static/login.html"
+    "static/app.js"
+    "static/styles.css"
+    "conf/modbusua.conf"
+)
+foreach(_file IN LISTS _required_ui_files)
+    if(NOT EXISTS "${CN_UI_SOURCE}/${_file}")
+        message(FATAL_ERROR "Engineering UI source is incomplete: missing '${CN_UI_SOURCE}/${_file}'")
+    endif()
+endforeach()
 
 file(MAKE_DIRECTORY "${CN_UI_DEST}")
 
