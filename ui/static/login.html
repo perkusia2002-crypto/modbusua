@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>modbusua — вход</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/styles.css?v=20261008-11">
+</head>
+<body class="login-page">
+  <main class="login-card panel">
+    <div class="login-brand">
+      <img src="/static/logo.svg" class="login-logo" alt="modbusua">
+      <div class="brand">modbusua</div>
+      <div class="subtitle">Администрирование Modbus → OPC UA Gateway</div>
+    </div>
+    <form id="login-form">
+      <label>Пароль
+        <input id="password" type="password" autocomplete="current-password" autofocus required>
+      </label>
+      <button class="primary full" type="submit">Войти</button>
+      <div id="login-error" class="notice error hidden"></div>
+    </form>
+  </main>
+  <script>
+    const form = document.getElementById('login-form');
+    const password = document.getElementById('password');
+    const error = document.getElementById('login-error');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.classList.add('hidden');
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({password: password.value})
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || 'Ошибка входа');
+        const session = await fetch('/api/auth/me', { cache: 'no-store', credentials: 'same-origin' });
+        if (!session.ok) throw new Error('Сессия не была создана. Проверьте cookie/настройки браузера.');
+        window.location.replace('/?auth=' + Date.now());
+      } catch (e) {
+        error.textContent = e.message;
+        error.classList.remove('hidden');
+        password.select();
+      }
+    });
+  </script>
+</body>
+</html>

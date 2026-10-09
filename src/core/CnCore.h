@@ -162,7 +162,21 @@ enum DataSuffix
     Suffix_SwappedUInt64  , ///< 64-bit unsigned integer with swapped registers
     Suffix_SwappedFloat   , ///< 32-bit floating point with swapped registers
     Suffix_SwappedDouble  , ///< 64-bit floating point with swapped registers
-    Suffix_ByteArray        ///< Byte array
+    Suffix_ByteArray        , ///< Byte array
+    Suffix_ByteSwappedInt16  , ///< Integer type with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedUInt16 , ///< Unsigned integer type with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedInt32  , ///< 32-bit signed integer with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedUInt32 , ///< 32-bit unsigned integer with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedInt64  , ///< 64-bit signed integer with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedUInt64 , ///< 64-bit unsigned integer with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedFloat  , ///< 32-bit floating point with bytes swapped inside each 16-bit register
+    Suffix_ByteSwappedDouble , ///< 64-bit floating point with bytes swapped inside each 16-bit register
+    Suffix_SwappedByteInt32  , ///< 32-bit signed integer with swapped register order and bytes inside each register
+    Suffix_SwappedByteUInt32 , ///< 32-bit unsigned integer with swapped register order and bytes inside each register
+    Suffix_SwappedByteInt64  , ///< 64-bit signed integer with swapped register order and bytes inside each register
+    Suffix_SwappedByteUInt64 , ///< 64-bit unsigned integer with swapped register order and bytes inside each register
+    Suffix_SwappedByteFloat  , ///< 32-bit floating point with swapped register order and bytes inside each register
+    Suffix_SwappedByteDouble , ///< 64-bit floating point with swapped register order and bytes inside each register
 };
 
 /// \brief Specifies the access type

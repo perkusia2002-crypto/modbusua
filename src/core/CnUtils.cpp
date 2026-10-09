@@ -369,7 +369,21 @@ CnString DataSuffixToString(DataSuffix suffix)
     case Suffix_SwappedUInt64 : return CnSTR("SwappedUInt64");
     case Suffix_SwappedFloat  : return CnSTR("SwappedFloat");
     case Suffix_SwappedDouble : return CnSTR("SwappedDouble");
-    case Suffix_ByteArray     : return CnSTR("ByteArray");
+    case Suffix_ByteArray          : return CnSTR("ByteArray");
+    case Suffix_ByteSwappedInt16   : return CnSTR("ByteSwappedInt16");
+    case Suffix_ByteSwappedUInt16  : return CnSTR("ByteSwappedUInt16");
+    case Suffix_ByteSwappedInt32   : return CnSTR("ByteSwappedInt32");
+    case Suffix_ByteSwappedUInt32  : return CnSTR("ByteSwappedUInt32");
+    case Suffix_ByteSwappedInt64   : return CnSTR("ByteSwappedInt64");
+    case Suffix_ByteSwappedUInt64  : return CnSTR("ByteSwappedUInt64");
+    case Suffix_ByteSwappedFloat   : return CnSTR("ByteSwappedFloat");
+    case Suffix_ByteSwappedDouble  : return CnSTR("ByteSwappedDouble");
+    case Suffix_SwappedByteInt32   : return CnSTR("SwappedByteInt32");
+    case Suffix_SwappedByteUInt32  : return CnSTR("SwappedByteUInt32");
+    case Suffix_SwappedByteInt64   : return CnSTR("SwappedByteInt64");
+    case Suffix_SwappedByteUInt64  : return CnSTR("SwappedByteUInt64");
+    case Suffix_SwappedByteFloat   : return CnSTR("SwappedByteFloat");
+    case Suffix_SwappedByteDouble  : return CnSTR("SwappedByteDouble");
     default:
         return CnString();
     }
@@ -410,6 +424,40 @@ DataSuffix DataTypeToSwappedSuffix(DataType dataType)
     }
 }
 
+DataSuffix DataTypeToByteSwappedSuffix(DataType dataType)
+{
+    switch (dataType)
+    {
+    case Data_Int16 : return Suffix_ByteSwappedInt16;
+    case Data_UInt16: return Suffix_ByteSwappedUInt16;
+    case Data_Int32 : return Suffix_ByteSwappedInt32;
+    case Data_UInt32: return Suffix_ByteSwappedUInt32;
+    case Data_Int64 : return Suffix_ByteSwappedInt64;
+    case Data_UInt64: return Suffix_ByteSwappedUInt64;
+    case Data_Int   : return Suffix_ByteSwappedInt32;
+    case Data_UInt  : return Suffix_ByteSwappedUInt32;
+    case Data_Float : return Suffix_ByteSwappedFloat;
+    case Data_Double: return Suffix_ByteSwappedDouble;
+    default         : return Suffix_Default;
+    }
+}
+
+DataSuffix DataTypeToSwappedByteSuffix(DataType dataType)
+{
+    switch (dataType)
+    {
+    case Data_Int32 : return Suffix_SwappedByteInt32;
+    case Data_UInt32: return Suffix_SwappedByteUInt32;
+    case Data_Int64 : return Suffix_SwappedByteInt64;
+    case Data_UInt64: return Suffix_SwappedByteUInt64;
+    case Data_Int   : return Suffix_SwappedByteInt32;
+    case Data_UInt  : return Suffix_SwappedByteUInt32;
+    case Data_Float : return Suffix_SwappedByteFloat;
+    case Data_Double: return Suffix_SwappedByteDouble;
+    default         : return Suffix_Default;
+    }
+}
+
 void swap32(const void * src, void * dst)
 {
     const uint16_t *ts = reinterpret_cast<const uint16_t*>(src);
@@ -426,6 +474,20 @@ void swap64(const void * src, void * dst)
     td[1] = ts[0];
     td[2] = ts[3];
     td[3] = ts[2];
+}
+
+void swapBytes16(const void *src, void *dst, size_t size)
+{
+    const uint8_t *s = reinterpret_cast<const uint8_t*>(src);
+    uint8_t *d = reinterpret_cast<uint8_t*>(dst);
+    size_t i = 0;
+    for (; i + 1 < size; i += 2)
+    {
+        d[i] = s[i + 1];
+        d[i + 1] = s[i];
+    }
+    if (i < size)
+        d[i] = s[i];
 }
 
 CnChar* ModbusMessageName(CnChar* buffer, Modbus::MemoryType mem, uint16_t offset, uint16_t count)

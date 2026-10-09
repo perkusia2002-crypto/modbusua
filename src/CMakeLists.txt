@@ -216,6 +216,18 @@ endif()
 
 add_executable(${CN_APP_NAME} ${CN_HEADERS} ${CN_SOURCES} ${CN_RESOURCES})
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/ui")
+    add_custom_command(
+        TARGET ${CN_APP_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+                "-DCN_UI_SOURCE=${CMAKE_SOURCE_DIR}/ui"
+                "-DCN_UI_DEST=$<TARGET_FILE_DIR:${CN_APP_NAME}>/ui"
+                -P "${CMAKE_SOURCE_DIR}/cmake/DeployUi.cmake"
+        COMMENT "Deploy engineering UI beside ${CN_APP_NAME}"
+    )
+endif()
+
 include_directories(.
                     ..
                     ../modbus/src
@@ -274,6 +286,17 @@ if (WIN32)
 	install(FILES   ${CN_WIN_HELP_FILES}     DESTINATION "./doc")
     install(FILES   ${CN_WIN_CHANGELOG_FILE} DESTINATION "./doc")
 	install(DIRECTORY 					     DESTINATION "./log")
+
+    if (EXISTS "${CMAKE_SOURCE_DIR}/ui")
+        install(
+            DIRECTORY "${CMAKE_SOURCE_DIR}/ui/"
+            DESTINATION "./ui"
+            PATTERN "__pycache__" EXCLUDE
+            PATTERN "*.pyc" EXCLUDE
+            PATTERN ".venv" EXCLUDE
+            PATTERN ".env" EXCLUDE
+        )
+    endif()
 else()
 	# Example of starting install process:
 	# `$ sudo cmake --install ~/tmp/cmake/chainua/Linux/Debug --prefix /`

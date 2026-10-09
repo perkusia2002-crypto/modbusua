@@ -9,6 +9,7 @@
 #define CNUTILS_H
 
 #include <string>
+#include <cstddef>
 #include <codecvt>
 #include <locale>
 
@@ -372,6 +373,19 @@ DataSuffix DataTypeToSuffix(DataType dataType);
 
 /// \details
 DataSuffix DataTypeToSwappedSuffix(DataType dataType);
+DataSuffix DataTypeToByteSwappedSuffix(DataType dataType);
+DataSuffix DataTypeToSwappedByteSuffix(DataType dataType);
+
+/// \details Swaps the two bytes inside each 16-bit word of a raw value.
+void swapBytes16(const void *src, void *dst, size_t size);
+
+template <typename T>
+inline T byteSwapped(T src)
+{
+    T dst;
+    swapBytes16(&src, &dst, sizeof(T));
+    return dst;
+}
 
 /// \details Returns a string representation of the value of type `Cn::DataSuffix`. Same as `DataSuffixToString`.
 inline CnString toString(DataSuffix suffix) { return DataSuffixToString(suffix); }

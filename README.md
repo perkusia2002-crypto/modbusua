@@ -198,6 +198,32 @@ sudo systemctl enable --now modbusua
 ```
 
 
+## Engineering UI
+
+
+The repository now defines an engineering-console integration point for the companion `ui/` web application.
+The UI provides device/port administration, online OPC UA monitoring, OPC UA browsing, Modbus engineering
+tests, diagnostics, logs, configuration validation/backup and process control.
+
+For register items, the UI can expose two independent byte-order controls:
+
+- register order: normal / reversed;
+- byte order inside each 16-bit Modbus register: standard / swapped.
+
+The gateway item reference format supports the following new suffixes:
+
+| Reference suffix | Meaning |
+|---|---|
+| `SB` / `RB` | byte-swapped Int16 / UInt16 |
+| `IB` / `UB` | byte-swapped Int32 / UInt32 |
+| `LLB` / `ULB` | byte-swapped Int64 / UInt64 |
+| `FB` / `LFB` | byte-swapped Float / Double |
+| `ISB` / `USB` | reversed register order + byte-swapped Int32 / UInt32 |
+| `LLSB` / `ULSB` | reversed register order + byte-swapped Int64 / UInt64 |
+| `FSB` / `LFSB` | reversed register order + byte-swapped Float / Double |
+
+Existing `IS`, `US`, `LLS`, `ULS`, `FS` and `LFS` continue to mean reversed 16-bit
+register order without changing the byte order inside individual registers.
 ## Configuration
 
 Configuration is done via the `modbusua.conf` file. Main configuration objects:

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <core/CnUtils.h>
+#include <cstring>
 
 TEST(CnUtilsTest, ToInt_ValidInput)
 {
@@ -189,3 +190,22 @@ TEST(CnUtilsTest, CurrentTimestamp)
     EXPECT_GT(timestamp, CnTimestamp(0)); // Ensure the timestamp is valid
 }
 
+
+TEST(CnUtilsTest, SwapBytes16)
+{
+    uint32_t value = 0x12345678;
+    uint32_t swapped = Cn::byteSwapped(value);
+    EXPECT_EQ(swapped, 0x34127856U);
+}
+
+TEST(CnUtilsTest, SwapBytes16Float)
+{
+    uint32_t bits = 0x42280000U;
+    float value;
+    std::memcpy(&value, &bits, sizeof(value));
+    float swapped = Cn::byteSwapped(value);
+
+    uint32_t swappedBits;
+    std::memcpy(&swappedBits, &swapped, sizeof(swappedBits));
+    EXPECT_EQ(swappedBits, 0x28420000U);
+}

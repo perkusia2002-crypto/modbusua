@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>modbusua UI</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/styles.css?v=20261008-14">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-lockup">
+    <img src="/static/logo.svg" class="brand-logo" alt="modbusua">
+    <div>
+      <div class="brand">modbusua</div>
+      <div class="subtitle" id="server-subtitle">Администрирование gateway</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span id="server-status" class="status-pill bad">Сервер: —</span>
+    <span id="opc-status" class="status-pill bad">OPC UA: —</span>
+    <button id="start-btn" class="success">Запустить</button>
+    <button id="stop-btn" class="danger-btn">Остановить</button>
+    <button id="restart-btn">Перезапустить</button>
+    <button id="reload-btn" class="primary">Применить</button>
+    <button id="logout-btn">Выйти</button>
+  </div>
+</header>
+
+<div class="app-shell">
+  <nav class="nav panel">
+    <button class="nav-btn active" data-page="dashboard">Обзор</button>
+    <button class="nav-btn" data-page="devices">Устройства</button>
+    <button class="nav-btn" data-page="items">Переменные</button>
+    <button class="nav-btn" data-page="online">Онлайн / R/W</button>
+    <button class="nav-btn" data-page="browser">OPC UA Browser</button>
+    <button class="nav-btn" data-page="diagnostics">Диагностика</button>
+    <button class="nav-btn" data-page="config">Конфигурация</button>
+  </nav>
+
+  <main class="pages">
+    <section class="page active" id="page-dashboard">
+      <div class="cards dashboard-cards">
+        <div class="stat-card panel"><span>Сервер</span><strong id="card-server">—</strong><small id="card-server-detail">—</small></div>
+        <div class="stat-card panel"><span>OPC UA</span><strong id="card-opc">—</strong><small id="card-opc-detail">—</small></div>
+        <div class="stat-card panel resource-card"><span>CPU modbusua</span><strong id="card-cpu">—</strong><div class="meter"><i id="card-cpu-meter"></i></div><small id="card-cpu-detail">процесс</small></div>
+        <div class="stat-card panel resource-card"><span>ОЗУ modbusua</span><strong id="card-memory">—</strong><div class="meter"><i id="card-memory-meter"></i></div><small id="card-memory-detail">RSS процесса</small></div>
+        <div class="stat-card panel"><span>Портов</span><strong id="card-ports">0</strong><small>связанных с устройствами</small></div>
+        <div class="stat-card panel"><span>Устройств</span><strong id="card-devices">0</strong><small>из конфигурации</small></div>
+        <div class="stat-card panel"><span>Переменных</span><strong id="card-items">0</strong><small>Modbus items</small></div>
+      </div>
+      <div class="panel section-card dashboard-health">
+        <div class="panel-head"><div><h2>Состояние системы</h2><div class="muted">Ресурсы modbusua и компьютера в реальном времени</div></div></div>
+        <div class="health-grid dashboard-resource-grid">
+          <div><span>CPU процесса</span><strong id="dash-cpu">—</strong><small id="dash-cpu-detail">—</small></div>
+          <div><span>ОЗУ процесса</span><strong id="dash-memory">—</strong><small id="dash-memory-detail">—</small></div>
+          <div><span>CPU системы</span><strong id="dash-system-cpu">—</strong><small id="dash-system-cpu-detail">—</small></div>
+          <div><span>ОЗУ системы</span><strong id="dash-system-memory">—</strong><small id="dash-system-memory-detail">—</small></div>
+          <div><span>Потоки</span><strong id="dash-threads">—</strong><small>modbusua</small></div>
+          
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="panel section-card">
+          <div class="panel-head"><h2>Параметры gateway</h2></div>
+          <dl class="details">
+            <dt>Файл конфигурации</dt><dd id="detail-config">—</dd>
+            <dt>Исполняемый файл</dt><dd id="detail-exe">—</dd>
+            <dt>Режим запуска</dt><dd id="detail-mode">—</dd>
+            <dt>OPC UA endpoint</dt><dd id="detail-endpoint">—</dd>
+          </dl>
+        </div>
+        <div class="panel section-card">
+          <div class="panel-head"><h2>Файлы</h2></div>
+          <div id="files-list" class="file-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-devices">
+      <div class="panel section-card">
+        <div class="panel-head">
+          <div><h2>Устройства</h2><div class="muted">Порт и устройство управляются как одна сущность</div></div>
+          <button id="add-device-btn" class="primary">+ Добавить устройство</button>
+        </div>
+        <div id="notice" class="notice hidden"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Устройство</th><th>Порт</th><th>Подключение</th><th>Unit</th><th>Включено</th><th>Переменные</th><th></th></tr></thead>
+            <tbody id="devices-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-items">
+      <div class="panel section-card">
+        <div class="panel-head">
+          <div><h2>Переменные</h2><div class="muted" id="items-context">Выберите устройство</div></div>
+          <div class="top-actions"><div class="combo"><select id="items-device-select"></select></div><button id="add-item-btn" class="primary">+ Добавить</button></div>
+        </div>
+                <div class="table-wrap">
+          <table>
+            <thead><tr><th>Имя</th><th>Область</th><th>Регистр</th><th>Тип данных</th><th>Период</th><th>Функции</th><th>Порядок регистров</th><th>Значение</th><th>Состояние</th><th></th></tr></thead>
+            <tbody id="items-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-online">
+      <div class="panel section-card">
+        <div class="panel-head">
+          <div><h2>Онлайн-таблица</h2><div class="muted">Реальные значения, качество, время источника и ручная запись через OPC UA</div></div>
+          <div class="top-actions"><div class="combo"><select id="online-device-select"></select></div><button id="online-read-all-btn" class="primary">↻ Читать все</button><button id="online-refresh-btn">Обновить</button></div>
+        </div>
+        <div id="online-notice" class="notice hidden"></div>
+        <div class="table-wrap">
+          <table class="online-table">
+            <thead><tr><th>Переменная</th><th>Modbus</th><th>Тип</th><th>Чтение</th><th>Качество</th><th>Время</th><th>Запись</th><th></th></tr></thead>
+            <tbody id="online-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="two-col online-bottom">
+        <div class="panel section-card">
+          <div class="panel-head"><div><h2>Сводка обмена</h2><div class="muted">Состояние шлюза и OPC UA без перехода на другие страницы</div></div></div>
+          <dl class="details compact"><dt>OPC UA</dt><dd id="online-opc-status">—</dd><dt>Endpoint</dt><dd id="online-opc-endpoint">—</dd><dt>Namespace</dt><dd id="online-opc-namespace">—</dd><dt>Всего тегов</dt><dd id="online-item-count">0</dd><dt>Доступно для записи</dt><dd id="online-write-count">0</dd></dl>
+        </div>
+        <div class="panel section-card">
+          <div class="panel-head"><div><h2>Безопасная запись</h2><div class="muted">Запись разрешена только для 0x/4x переменных, у которых есть функция записи</div></div></div>
+          <div class="safety-box">Перед записью показываются тип OPC UA и текущее значение. Для чисел вводится обычное десятичное значение, для Bool — TRUE/FALSE, для ByteArray — HEX.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-browser">
+      <div class="panel section-card">
+        <div class="panel-head">
+          <div><h2>OPC UA Browser</h2><div class="muted">Просмотр дерева Namespace и ручное чтение узлов</div></div>
+          <div class="top-actions"><button id="browser-root-btn" class="primary">Objects</button><button id="browser-refresh-btn">Обновить</button></div>
+        </div>
+        <div class="browser-layout">
+          <div class="browser-tree panel-inset" id="browser-tree"><div class="empty">Нажмите Objects</div></div>
+          <div class="browser-details panel-inset">
+            <div class="browser-node-head"><h3 id="browser-node-title">Узел не выбран</h3><button id="browser-read-btn" disabled>Читать</button></div>
+            <dl class="details compact"><dt>NodeId</dt><dd id="browser-node-id">—</dd><dt>Класс</dt><dd id="browser-node-class">—</dd><dt>Тип Variant</dt><dd id="browser-node-type">—</dd><dt>Качество</dt><dd id="browser-node-status">—</dd><dt>Значение</dt><dd id="browser-node-value" class="value">—</dd></dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-diagnostics">
+      <div class="panel section-card">
+        <div class="panel-head">
+          <div><h2>Диагностика</h2><div class="muted">Состояние gateway, ресурсы компьютера, подключения и инженерная проверка Modbus</div></div>
+          <div class="top-actions"><button id="diag-refresh-btn" class="primary">Обновить</button><button id="diag-validate-btn">Проверить конфигурацию</button><button id="diag-backup-btn">Создать резервную копию</button></div>
+        </div>
+        <div id="diag-notice" class="notice hidden"></div>
+        <div class="health-grid diag-health">
+          <div><span>Процесс</span><strong id="diag-process">—</strong><small id="diag-process-detail">—</small></div>
+          <div><span>CPU процесса</span><strong id="diag-cpu">—</strong><small>нагрузка modbusua</small></div>
+          <div><span>ОЗУ процесса</span><strong id="diag-memory">—</strong><small>RSS</small></div>
+          <div><span>CPU системы</span><strong id="diag-system-cpu">—</strong><small>общая загрузка</small></div>
+          <div><span>ОЗУ системы</span><strong id="diag-system-memory">—</strong><small id="diag-system-memory-detail">—</small></div>
+          <div><span>Uptime</span><strong id="diag-uptime">—</strong><small id="diag-threads">—</small></div>
+          <div><span>OPC UA</span><strong id="diag-opc">—</strong><small id="diag-opc-detail">—</small></div>
+          <div><span>Конфигурация</span><strong id="diag-config-state">—</strong><small id="diag-config-detail">—</small></div>
+        </div>
+      </div>
+
+      <div class="panel section-card diag-section">
+        <div class="panel-head"><div><h2>Устройства и подключения</h2><div class="muted">Выбери порт, чтобы сразу перейти к его тесту</div></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Устройство</th><th>Порт</th><th>Подключение</th><th>Unit</th><th>Состояние</th><th>Items</th><th></th></tr></thead><tbody id="diag-devices-body"></tbody></table></div>
+      </div>
+
+      <div class="panel section-card diag-section">
+        <div class="panel-head"><div><h2>Modbus-тестер</h2><div class="muted">Проверка порта без изменения конфигурации gateway</div></div><span id="mb-result-state" class="status-pill">Готов</span></div>
+        <form id="modbus-test-form" class="diag-form">
+          <fieldset>
+            <legend>Соединение</legend>
+            <div class="form-grid diag-grid">
+              <label>Порт<div class="combo"><select id="mb-port" required></select></div><small>Порт из конфигурации устройства</small></label>
+              <label>Unit ID<input id="mb-unit" type="number" min="1" max="247" value="1" required><small>Начальный адрес Modbus slave: 1–247</small></label>
+              <label>Таймаут<div class="input-unit"><input id="mb-timeout" type="number" min="1" max="120000" value="2000" required><span>мс</span></div></label>
+              <label>Адрес<div class="input-unit"><input id="mb-address" type="number" min="0" max="65536" value="1" required><span>рег.</span></div><small>Можно выбрать 1-based или 0-based</small></label>
+              <label>Нумерация адреса<div class="segmented"><label><input type="radio" name="mb-address-mode-radio" value="one_based" checked><span>1-based</span></label><label><input type="radio" name="mb-address-mode-radio" value="zero_based"><span>0-based</span></label></div><input id="mb-address-mode" type="hidden" value="one_based"></label>
+              <label>Количество<div class="input-unit"><input id="mb-count" type="number" min="1" max="2000" value="1" required><span>шт.</span></div></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Запрос</legend>
+            <div class="form-grid diag-grid">
+              <label class="span-2">Функция Modbus<div class="combo"><select id="mb-function">
+                <option value="1">FC01 · Читать Coil</option><option value="2">FC02 · Читать Discrete Input</option><option value="3" selected>FC03 · Читать Holding Register</option><option value="4">FC04 · Читать Input Register</option>
+                <option value="5">FC05 · Записать Coil</option><option value="6">FC06 · Записать Register</option><option value="15">FC15 · Записать несколько Coil</option><option value="16">FC16 · Записать несколько Register</option>
+              </select></div></label>
+              <label>Тип данных<div class="combo"><select id="mb-data-type"><option>Bool</option><option selected>UInt16</option><option>Int16</option><option>UInt32</option><option>Int32</option><option>UInt64</option><option>Int64</option><option>Float</option><option>Double</option><option>ByteArray</option></select></div></label>
+              <label>Порядок регистров<div class="combo"><select id="mb-register-order"><option value="normal">Прямой · R0 → R1</option><option value="reverse">Обратный · R1 → R0</option></select></div></label>
+              <label>Порядок байтов<div class="combo"><select id="mb-byte-order"><option value="standard">Стандартный · AB CD</option><option value="swapped">Обратный · BA DC</option></select></div><small>Независимо от порядка регистров</small></label>
+              <label id="mb-value-label" class="span-2">Значение<input id="mb-value" placeholder="Например: 48.5 или 1234"><select id="mb-bool-value" class="hidden"><option value="true">TRUE · 1</option><option value="false">FALSE · 0</option></select><small id="mb-value-help">Для FC06 можно вводить десятичное число. Для ByteArray — HEX.</small></label>
+              <label id="mb-values-label" class="span-2 hidden">Значения для записи<textarea id="mb-values" rows="3" placeholder="1, 2, 3"></textarea><small>FC15/FC16: значения через запятую</small></label>
+            </div>
+          </fieldset>
+
+          <fieldset id="mb-serial-wrap" class="hidden">
+            <legend>RS-485 / RTU</legend>
+            <div class="form-grid diag-grid serial-grid">
+              <label>Скорость<div class="combo"><select id="mb-baudrate"><option>2400</option><option>4800</option><option selected>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option></select></div></label>
+              <label>Чётность<div class="combo"><select id="mb-parity"><option selected>N · нет</option><option>E · чёт</option><option>O · нечёт</option></select></div></label>
+              <label>Стоп-биты<div class="combo"><select id="mb-stopbits"><option selected value="1">1</option><option value="2">2</option></select></div></label>
+              <label>Биты данных<div class="combo"><select id="mb-bytesize"><option selected value="8">8</option><option value="7">7</option></select></div></label>
+            </div>
+            <div class="form-note">Эти параметры используются только диагностическим клиентом и не изменяют Port в gateway.</div>
+          </fieldset>
+          <div class="dialog-actions"><button type="submit" class="primary">Выполнить запрос</button><button type="button" id="mb-clear-btn">Очистить результат</button></div>
+        </form>
+      </div>
+
+      <div class="panel section-card diag-section">
+        <div class="panel-head"><div><h2>Ответ Modbus</h2><div class="muted">Сырые данные, декодирование и задержка</div></div></div>
+        <div id="mb-result" class="modbus-result empty">Выполните запрос — здесь появятся результат и ответ устройства.</div>
+      </div>
+
+      <div class="panel section-card diag-section">
+        <div class="panel-head"><div><h2>Журнал modbusua</h2><div class="muted">Последние строки выбранного журнала</div></div><div class="top-actions"><div class="combo log-select-wrap"><select id="log-file-select"></select></div><button id="log-open-btn">Открыть</button></div></div>
+        <pre id="log-view" class="config-view log-view">Выберите журнал</pre>
+      </div>
+    </section>
+
+    <section class="page" id="page-config">
+      <div class="two-col config-grid">
+        <div class="panel section-card"><div class="panel-head"><div><h2>Файлы конфигурации</h2><div class="muted">Просмотр + управление резервной копией</div></div><div class="top-actions"><button id="config-validate-btn">Проверить</button><button id="config-backup-btn">Backup</button></div></div><div id="config-files-list" class="file-list selectable"></div></div>
+        <div class="panel section-card"><div class="panel-head"><h2 id="config-view-title">Просмотр файла</h2></div><pre id="config-view" class="config-view">Выберите файл</pre></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="item-dialog">
+  <form id="item-form" class="dialog-form wide">
+    <div class="dialog-head"><h2 id="item-dialog-title">Переменная</h2><button type="button" data-close class="icon-btn">×</button></div>
+    <input id="item-old-name" type="hidden">
+    <label>Устройство<div class="combo"><select id="item-device-input" required></select></div></label>
+    <label>Имя переменной<input id="item-name-input" required maxlength="128"></label>
+    <div class="form-grid">
+      <label>Область Modbus<div class="combo"><select id="item-area"><option value="4">4x — Holding Register</option><option value="3">3x — Input Register</option><option value="1">1x — Discrete Input</option><option value="0">0x — Coil</option></select></div></label>
+      <label>Нумерация адреса<div class="combo"><select id="item-address-mode"><option value="one_based" selected>1-based — адрес с 1</option><option value="zero_based">0-based — адрес с 0</option></select></div><small class="muted">Как в тестировании Modbus. При 0-based адрес 0 станет первым регистром в Item Reference.</small></label>
+      <label>Регистр<input id="item-register" type="number" min="1" max="65536" value="1" required></label>
+      <label>Тип данных<div class="combo"><select id="item-data-type"></select></div></label>
+      <label>Порядок регистров<div class="combo"><select id="item-register-order"><option value="normal">Прямой — R0, R1, R2...</option><option value="reverse">Обратный — R1, R0...</option></select></div><small class="muted">Для многорегистровых типов</small></label>
+      <label>Порядок байт<div class="combo"><select id="item-byte-order"><option value="standard">Стандартный · AB CD</option><option value="swapped">Обратный · BA DC</option></select></div><small class="muted">Отдельно от порядка регистров</small></label>
+      <label>Период опроса, мс<input id="item-period" type="number" min="1" value="500" required></label>
+      <label id="item-end-wrap" class="hidden">Конечный регистр<input id="item-end-register" type="number" min="1" max="65536"></label>
+      <label>Message ID <span class="muted">необязательно</span><input id="item-message-id" maxlength="128" placeholder="например 100"></label>
+    </div>
+    <div class="form-note byte-order-note">Порядок байтов задаётся независимо от порядка регистров. Для 32/64-битных и Float/Double типов доступны обе комбинации.</div>
+    <div class="dialog-actions"><button type="button" data-close>Отмена</button><button class="primary">Сохранить</button></div>
+  </form>
+</dialog>
+
+
+<dialog id="rw-dialog">
+  <form id="rw-form" class="dialog-form wide">
+    <div class="dialog-head"><h2>Чтение / запись</h2><button type="button" data-close class="icon-btn">×</button></div>
+    <div class="rw-meta">
+      <div><span>Устройство</span><strong id="rw-device">—</strong></div>
+      <div><span>Переменная</span><strong id="rw-name">—</strong></div>
+      <div><span>NodeId</span><code id="rw-node">—</code></div>
+      <div><span>Тип</span><strong id="rw-type">—</strong></div>
+    </div>
+    <div class="rw-current panel-inset"><div><span>Текущее значение</span><strong id="rw-current">—</strong></div><div><span>Качество</span><strong id="rw-status">—</strong></div><div><span>Время источника</span><strong id="rw-timestamp">—</strong></div></div>
+    <label>Значение для записи<input id="rw-value" autocomplete="off" placeholder="Например 48.5"></label>
+    <div class="help" id="rw-help">Запись выполняется через OPC UA. Для 4x функция записи зависит от количества регистров; 3x/1x доступны только для чтения.</div>
+    <div class="dialog-actions"><button type="button" id="rw-read-btn">Прочитать</button><button type="button" id="rw-write-btn" class="primary">Записать</button></div>
+  </form>
+</dialog>
+
+<dialog id="device-dialog">
+  <form id="device-form" class="dialog-form xwide">
+    <div class="dialog-head"><h2 id="device-dialog-title">Устройство</h2><button type="button" data-close class="icon-btn">×</button></div>
+    <input id="device-old-name" type="hidden">
+    <h3>Параметры устройства</h3>
+    <div class="form-grid">
+      <label>Имя устройства<input id="device-name" required></label>
+      <label>Адрес Modbus (Unit)<input id="device-unit" value="1" required></label>
+      <label>Устройство включено<input id="device-enable" value="1"></label>
+      <label>Количество повторов запроса<input id="device-repeat" value="2"></label>
+      <label>Таймаут восстановления связи, мс<input id="device-restore" value="10000"></label>
+      <label>Период опроса по умолчанию, мс<input id="device-period" value="500"></label>
+      <label>Таймаут запроса, мс<input id="device-request" value="5000"></label>
+      <label>Максимум Coil для чтения<input id="device-max-coils" value="2000"></label>
+      <label>Максимум Coil для записи<input id="device-max-write-coils" value="2000"></label>
+      <label>Максимум Discrete Input для чтения<input id="device-max-di" value="2000"></label>
+      <label>Максимум Input Register для чтения<input id="device-max-ir" value="120"></label>
+      <label>Максимум Holding Register для чтения<input id="device-max-hr" value="120"></label>
+      <label>Максимум Holding Register для записи<input id="device-max-write-reg" value="120"></label>
+    </div>
+    <h3>Подключение</h3>
+    <div class="form-grid">
+      <label>Имя подключения<input id="device-port-name" required></label>
+      <label>Тип подключения<div class="combo"><select id="device-port-type"><option value="TCP">TCP</option><option value="RTU">RTU</option><option value="ASCII">ASCII</option></select></div></label>
+      <label>Адрес устройства<input id="device-host" value="127.0.0.1"></label>
+      <label>Порт подключения<input id="device-port-number" value="502"></label>
+      <label>Таймаут подключения, мс<input id="device-port-timeout" value="2000"></label>
+      <label>Подключение включено<input id="device-port-enable" value="1"></label>
+      <label>Количество повторов подключения<input id="device-port-repeat" value="2"></label>
+    </div>
+    <div class="help">При создании устройства UI автоматически создаёт связанный порт и CSV-файл переменных.</div>
+    <div class="dialog-actions"><button type="button" data-close>Отмена</button><button class="primary">Сохранить</button></div>
+  </form>
+</dialog>
+
+<script src="/static/app.js?v=20261008-14"></script>
+</body>
+</html>

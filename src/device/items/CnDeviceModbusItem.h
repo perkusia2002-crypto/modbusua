@@ -29,7 +29,12 @@ class CnDeviceMessage;
     `<arraysuffix>` – data-type suffix for reading an array of registers (mandatory for register arrays). Possible values:\n
     \li `B` – array has type `String`, representing a sequence of bytes, each represented by two hexadecimal (HEX) characters
     (no spaces or separators). Characters A–F must be uppercase. High bits of a byte go first (left), low bits last (right).
-    The low byte of a register goes first (left), the high byte second (right). For the following PLC memory snapshot:
+    The low byte of a register goes first (left), the high byte second (right).
+
+    \li Byte-order suffixes `SB/RB/IB/UB/LLB/ULB/FB/LFB` swap the two bytes inside every 16-bit
+    Modbus register while keeping register order unchanged.
+    \li Combined suffixes `ISB/USB/LLSB/ULSB/FSB/LFSB` swap both 16-bit register order and
+    the two bytes inside each register. For the following PLC memory snapshot:
     400001|400002|...|400010
     ------|------|---|------
     0x0BCD|0x80FE|...|0xFC05
@@ -222,6 +227,76 @@ protected:
             Cn::fromVariant(value, &v);
             v = Cn::swapped(v);
             this->m_value = v;
+        }
+    }
+};
+
+// ------------------------------------------------------------------------------------------
+// --------------------------- CnDeviceModbusItemByteSwappedT ------------------------------
+// ------------------------------------------------------------------------------------------
+
+/*! \brief Modbus item with independent byte swapping inside each 16-bit register.
+
+    \details Standard Modbus register order is preserved. Only the two bytes inside
+    every 16-bit register are exchanged. This is intentionally separate from
+    the existing Swapped* classes, which exchange 16-bit register order.
+ */
+template <class T>
+class CnDeviceModbusItemByteSwappedT : public CnDeviceModbusItemT<T>
+{
+public:
+    using CnDeviceModbusItemT<T>::CnDeviceModbusItemT;
+
+public:
+    Cn::DataSuffix dataSuffix() const override { return Cn::DataTypeToByteSwappedSuffix(this->dataType()); }
+
+protected:
+    void processDataUnsafe() override
+    {
+        this->m_value = Cn::byteSwapped(this->m_value);
+    }
+
+    void updateInner(const CnVariant &value, Cn::StatusCode status, CnTimestamp timestamp) override
+    {
+        this->m_status = status;
+        this->m_timestamp = timestamp;
+        if (!value.isNull())
+        {
+            T v;
+            Cn::fromVariant(value, &v);
+            this->m_value = Cn::byteSwapped(v);
+        }
+    }
+};
+
+/*! \brief Modbus item with independent byte and register-order swapping.
+ */
+template <class T>
+class CnDeviceModbusItemSwappedByteT : public CnDeviceModbusItemT<T>
+{
+public:
+    using CnDeviceModbusItemT<T>::CnDeviceModbusItemT;
+
+public:
+    Cn::DataSuffix dataSuffix() const override { return Cn::DataTypeToSwappedByteSuffix(this->dataType()); }
+
+protected:
+    void processDataUnsafe() override
+    {
+        this->m_value = Cn::swapped(this->m_value);
+        this->m_value = Cn::byteSwapped(this->m_value);
+    }
+
+    void updateInner(const CnVariant &value, Cn::StatusCode status, CnTimestamp timestamp) override
+    {
+        this->m_status = status;
+        this->m_timestamp = timestamp;
+        if (!value.isNull())
+        {
+            T v;
+            Cn::fromVariant(value, &v);
+            v = Cn::swapped(v);
+            this->m_value = Cn::byteSwapped(v);
         }
     }
 };
@@ -505,6 +580,44 @@ public:
 
 
 // ------------------------------------------------------------------------------------------
+// --------------------------- 0x Byte-order variants -------------------------
+// ------------------------------------------------------------------------------------------
+
+template <class T>
+class CnDeviceModbusItemByteSwapped0xT : public CnDeviceModbusItemByteSwappedT<T>
+{
+public:
+    using CnDeviceModbusItemByteSwappedT<T>::CnDeviceModbusItemByteSwappedT;
+    Cn::Access access() const override { return Cn::Access_ReadWrite; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_0x; }
+};
+
+template <class T>
+class CnDeviceModbusItemSwappedByte0xT : public CnDeviceModbusItemSwappedByteT<T>
+{
+public:
+    using CnDeviceModbusItemSwappedByteT<T>::CnDeviceModbusItemSwappedByteT;
+    Cn::Access access() const override { return Cn::Access_ReadWrite; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_0x; }
+};
+
+typedef CnDeviceModbusItemByteSwapped0xT<int16_t>  CnDeviceModbusItem0xByteSwappedInt16;
+typedef CnDeviceModbusItemByteSwapped0xT<uint16_t> CnDeviceModbusItem0xByteSwappedUInt16;
+typedef CnDeviceModbusItemByteSwapped0xT<int32_t>  CnDeviceModbusItem0xByteSwappedInt32;
+typedef CnDeviceModbusItemByteSwapped0xT<uint32_t> CnDeviceModbusItem0xByteSwappedUInt32;
+typedef CnDeviceModbusItemByteSwapped0xT<int64_t>  CnDeviceModbusItem0xByteSwappedInt64;
+typedef CnDeviceModbusItemByteSwapped0xT<uint64_t> CnDeviceModbusItem0xByteSwappedUInt64;
+typedef CnDeviceModbusItemByteSwapped0xT<float>    CnDeviceModbusItem0xByteSwappedFloat;
+typedef CnDeviceModbusItemByteSwapped0xT<double>   CnDeviceModbusItem0xByteSwappedDouble;
+
+typedef CnDeviceModbusItemSwappedByte0xT<int32_t>  CnDeviceModbusItem0xSwappedByteInt32;
+typedef CnDeviceModbusItemSwappedByte0xT<uint32_t> CnDeviceModbusItem0xSwappedByteUInt32;
+typedef CnDeviceModbusItemSwappedByte0xT<int64_t>  CnDeviceModbusItem0xSwappedByteInt64;
+typedef CnDeviceModbusItemSwappedByte0xT<uint64_t> CnDeviceModbusItem0xSwappedByteUInt64;
+typedef CnDeviceModbusItemSwappedByte0xT<float>    CnDeviceModbusItem0xSwappedByteFloat;
+typedef CnDeviceModbusItemSwappedByte0xT<double>   CnDeviceModbusItem0xSwappedByteDouble;
+
+// ------------------------------------------------------------------------------------------
 // ---------------------------------- CnDeviceModbusItem1x ----------------------------------
 // ------------------------------------------------------------------------------------------
 
@@ -601,6 +714,44 @@ public:
 
 
 // ------------------------------------------------------------------------------------------
+// --------------------------- 1x Byte-order variants -------------------------
+// ------------------------------------------------------------------------------------------
+
+template <class T>
+class CnDeviceModbusItemByteSwapped1xT : public CnDeviceModbusItemByteSwappedT<T>
+{
+public:
+    using CnDeviceModbusItemByteSwappedT<T>::CnDeviceModbusItemByteSwappedT;
+    Cn::Access access() const override { return Cn::Access_Read; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_1x; }
+};
+
+template <class T>
+class CnDeviceModbusItemSwappedByte1xT : public CnDeviceModbusItemSwappedByteT<T>
+{
+public:
+    using CnDeviceModbusItemSwappedByteT<T>::CnDeviceModbusItemSwappedByteT;
+    Cn::Access access() const override { return Cn::Access_Read; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_1x; }
+};
+
+typedef CnDeviceModbusItemByteSwapped1xT<int16_t>  CnDeviceModbusItem1xByteSwappedInt16;
+typedef CnDeviceModbusItemByteSwapped1xT<uint16_t> CnDeviceModbusItem1xByteSwappedUInt16;
+typedef CnDeviceModbusItemByteSwapped1xT<int32_t>  CnDeviceModbusItem1xByteSwappedInt32;
+typedef CnDeviceModbusItemByteSwapped1xT<uint32_t> CnDeviceModbusItem1xByteSwappedUInt32;
+typedef CnDeviceModbusItemByteSwapped1xT<int64_t>  CnDeviceModbusItem1xByteSwappedInt64;
+typedef CnDeviceModbusItemByteSwapped1xT<uint64_t> CnDeviceModbusItem1xByteSwappedUInt64;
+typedef CnDeviceModbusItemByteSwapped1xT<float>    CnDeviceModbusItem1xByteSwappedFloat;
+typedef CnDeviceModbusItemByteSwapped1xT<double>   CnDeviceModbusItem1xByteSwappedDouble;
+
+typedef CnDeviceModbusItemSwappedByte1xT<int32_t>  CnDeviceModbusItem1xSwappedByteInt32;
+typedef CnDeviceModbusItemSwappedByte1xT<uint32_t> CnDeviceModbusItem1xSwappedByteUInt32;
+typedef CnDeviceModbusItemSwappedByte1xT<int64_t>  CnDeviceModbusItem1xSwappedByteInt64;
+typedef CnDeviceModbusItemSwappedByte1xT<uint64_t> CnDeviceModbusItem1xSwappedByteUInt64;
+typedef CnDeviceModbusItemSwappedByte1xT<float>    CnDeviceModbusItem1xSwappedByteFloat;
+typedef CnDeviceModbusItemSwappedByte1xT<double>   CnDeviceModbusItem1xSwappedByteDouble;
+
+// ------------------------------------------------------------------------------------------
 // ---------------------------------- CnDeviceModbusItem3x ----------------------------------
 // ------------------------------------------------------------------------------------------
 
@@ -694,6 +845,44 @@ public:
     Modbus::MemoryType memoryType() const override { return Modbus::Memory_3x; }
 };
 
+
+// ------------------------------------------------------------------------------------------
+// --------------------------- 3x Byte-order variants -------------------------
+// ------------------------------------------------------------------------------------------
+
+template <class T>
+class CnDeviceModbusItemByteSwapped3xT : public CnDeviceModbusItemByteSwappedT<T>
+{
+public:
+    using CnDeviceModbusItemByteSwappedT<T>::CnDeviceModbusItemByteSwappedT;
+    Cn::Access access() const override { return Cn::Access_Read; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_3x; }
+};
+
+template <class T>
+class CnDeviceModbusItemSwappedByte3xT : public CnDeviceModbusItemSwappedByteT<T>
+{
+public:
+    using CnDeviceModbusItemSwappedByteT<T>::CnDeviceModbusItemSwappedByteT;
+    Cn::Access access() const override { return Cn::Access_Read; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_3x; }
+};
+
+typedef CnDeviceModbusItemByteSwapped3xT<int16_t>  CnDeviceModbusItem3xByteSwappedInt16;
+typedef CnDeviceModbusItemByteSwapped3xT<uint16_t> CnDeviceModbusItem3xByteSwappedUInt16;
+typedef CnDeviceModbusItemByteSwapped3xT<int32_t>  CnDeviceModbusItem3xByteSwappedInt32;
+typedef CnDeviceModbusItemByteSwapped3xT<uint32_t> CnDeviceModbusItem3xByteSwappedUInt32;
+typedef CnDeviceModbusItemByteSwapped3xT<int64_t>  CnDeviceModbusItem3xByteSwappedInt64;
+typedef CnDeviceModbusItemByteSwapped3xT<uint64_t> CnDeviceModbusItem3xByteSwappedUInt64;
+typedef CnDeviceModbusItemByteSwapped3xT<float>    CnDeviceModbusItem3xByteSwappedFloat;
+typedef CnDeviceModbusItemByteSwapped3xT<double>   CnDeviceModbusItem3xByteSwappedDouble;
+
+typedef CnDeviceModbusItemSwappedByte3xT<int32_t>  CnDeviceModbusItem3xSwappedByteInt32;
+typedef CnDeviceModbusItemSwappedByte3xT<uint32_t> CnDeviceModbusItem3xSwappedByteUInt32;
+typedef CnDeviceModbusItemSwappedByte3xT<int64_t>  CnDeviceModbusItem3xSwappedByteInt64;
+typedef CnDeviceModbusItemSwappedByte3xT<uint64_t> CnDeviceModbusItem3xSwappedByteUInt64;
+typedef CnDeviceModbusItemSwappedByte3xT<float>    CnDeviceModbusItem3xSwappedByteFloat;
+typedef CnDeviceModbusItemSwappedByte3xT<double>   CnDeviceModbusItem3xSwappedByteDouble;
 
 // ------------------------------------------------------------------------------------------
 // ---------------------------------- CnDeviceModbusItem4x ----------------------------------
@@ -802,5 +991,43 @@ CnDeviceModbusItem *createDeviceModbusItem(Cn::DataSuffix type,
 } // namespace Cn
 
 //typedef CnSharedPointer<CnDeviceModbusItem> CnDeviceModbusItemPtr; //!< Pointer to `CnDeviceModbusItem` object with automatic deletion support
+
+// ------------------------------------------------------------------------------------------
+// --------------------------- 4x Byte-order variants -------------------------
+// ------------------------------------------------------------------------------------------
+
+template <class T>
+class CnDeviceModbusItemByteSwapped4xT : public CnDeviceModbusItemByteSwappedT<T>
+{
+public:
+    using CnDeviceModbusItemByteSwappedT<T>::CnDeviceModbusItemByteSwappedT;
+    Cn::Access access() const override { return Cn::Access_ReadWrite; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_4x; }
+};
+
+template <class T>
+class CnDeviceModbusItemSwappedByte4xT : public CnDeviceModbusItemSwappedByteT<T>
+{
+public:
+    using CnDeviceModbusItemSwappedByteT<T>::CnDeviceModbusItemSwappedByteT;
+    Cn::Access access() const override { return Cn::Access_ReadWrite; }
+    Modbus::MemoryType memoryType() const override { return Modbus::Memory_4x; }
+};
+
+typedef CnDeviceModbusItemByteSwapped4xT<int16_t>  CnDeviceModbusItem4xByteSwappedInt16;
+typedef CnDeviceModbusItemByteSwapped4xT<uint16_t> CnDeviceModbusItem4xByteSwappedUInt16;
+typedef CnDeviceModbusItemByteSwapped4xT<int32_t>  CnDeviceModbusItem4xByteSwappedInt32;
+typedef CnDeviceModbusItemByteSwapped4xT<uint32_t> CnDeviceModbusItem4xByteSwappedUInt32;
+typedef CnDeviceModbusItemByteSwapped4xT<int64_t>  CnDeviceModbusItem4xByteSwappedInt64;
+typedef CnDeviceModbusItemByteSwapped4xT<uint64_t> CnDeviceModbusItem4xByteSwappedUInt64;
+typedef CnDeviceModbusItemByteSwapped4xT<float>    CnDeviceModbusItem4xByteSwappedFloat;
+typedef CnDeviceModbusItemByteSwapped4xT<double>   CnDeviceModbusItem4xByteSwappedDouble;
+
+typedef CnDeviceModbusItemSwappedByte4xT<int32_t>  CnDeviceModbusItem4xSwappedByteInt32;
+typedef CnDeviceModbusItemSwappedByte4xT<uint32_t> CnDeviceModbusItem4xSwappedByteUInt32;
+typedef CnDeviceModbusItemSwappedByte4xT<int64_t>  CnDeviceModbusItem4xSwappedByteInt64;
+typedef CnDeviceModbusItemSwappedByte4xT<uint64_t> CnDeviceModbusItem4xSwappedByteUInt64;
+typedef CnDeviceModbusItemSwappedByte4xT<float>    CnDeviceModbusItem4xSwappedByteFloat;
+typedef CnDeviceModbusItemSwappedByte4xT<double>   CnDeviceModbusItem4xSwappedByteDouble;
 
 #endif // CNDEVICEMODBUSITEM_H
